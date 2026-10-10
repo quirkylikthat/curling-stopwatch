@@ -36,7 +36,7 @@ This is the source of truth for **what actually works**. Update it whenever some
 | Even spacing of the band label / secondary line (`ui/Layout.h`) | ✅ | ✅ | ✅ |
 | Menu (2 s blue hold), touch navigation, BACK / blue click | ✅ (`Menu`) | ✅ | ✅ (BACK reliable after D22) |
 | Settings → Brightness slider (live, saved) | ✅ (`UserSettings`, `Menu`) | ✅ | ✅ (survives power cycle) |
-| Settings → Split bands (−/+, SHIFT ALL, RESET; saved; used for labels/colours) | ✅ | ✅ | ✅ saving + scrolling list · 🟡 extra space below SHIFT ALL (D22 follow-up) |
+| Settings → Split bands (−/+, SHIFT ALL, RESET; saved; used for labels/colours) | ✅ | ✅ | ✅ (saving, scrolling list, space below SHIFT ALL) |
 | Clear history moved to the menu, with confirmation | ✅ | ✅ | 🟡 |
 | Export | ⬜ | ⬜ | ⬜ (placeholder page) |
 
