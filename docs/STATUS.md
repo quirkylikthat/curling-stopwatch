@@ -33,6 +33,7 @@ This is the source of truth for **what actually works**. Update it whenever some
 | IMU held in suspend (`kImuEnabled = false`) | ⬜ | ✅ | ✅ |
 | Grove 5 V booster off (`kGrovePortPower = false`) | ⬜ | ✅ | ✅ |
 | 1 ms idle per loop (`kLoopIdleMs`) | ⬜ | ✅ | ✅ |
+| Even spacing of the band label / secondary line (`ui/Layout.h`) | ✅ | ✅ | 🟡 |
 
 ## Toolchains
 
@@ -40,7 +41,7 @@ This is the source of truth for **what actually works**. Update it whenever some
 |---|---|
 | Arduino CLI build: m5stack:esp32 3.3.9, M5Unified 0.2.25, M5GFX 0.2.32 | ✅ in the AI sandbox and in CI (`scripts/verify.sh`) |
 | PlatformIO build: pioarduino 55.03.39 | ✅ in the sandbox. ✅ on Mike's PC (compiled and linked; see the 2026-10-10 log) |
-| Host unit tests (52) | ✅ sandbox. On Mike's PC, needs a `g++` |
+| Host unit tests (57) | ✅ sandbox. On Mike's PC, needs a `g++` |
 | GitHub Actions CI | 🟡 Workflow written but not yet run; the repo isn't pushed to GitHub yet |
 
 ## Known issues

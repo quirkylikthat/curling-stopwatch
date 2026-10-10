@@ -118,7 +118,7 @@ v0.1.0 builds with zero warnings from our code under both toolchains: board pack
 
 ## Unit tests (no device needed)
 
-The timing logic in `src/core/` and the screen logic in `src/app/ViewBuilder.cpp` are plain C++, with 52 tests that run on a PC. Either command runs the same tests:
+The timing logic in `src/core/` and the screen logic in `src/app/ViewBuilder.cpp` are plain C++, with 57 tests that run on a PC. Either command runs the same tests:
 
 ```bash
 pio run -e native -t tests    # PlatformIO

@@ -26,6 +26,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
   - The Grove port's 5 V booster is off. Set `kGrovePortPower = true` before using a Grove unit.
   - The main loop now idles 1 ms per pass.
 
+### Fixed
+- **Timing screen spacing:** the weight label ("DRAW") was touching the big number. It and the SPLIT+H2H secondary line are now spaced evenly between the big number and the history row, using measured font ink extents (`ui/Layout.h`, `scripts/fontmetrics.py`).
+
 ## [0.1.0] - 2026-10-09
 
 ### Added

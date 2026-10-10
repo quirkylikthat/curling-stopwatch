@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#include "Layout.h"
 #include "Theme.h"
 
 namespace curl {
@@ -119,21 +120,27 @@ void Renderer::drawMain(LovyanGFX& g, const ViewModel& vm) {
     g.drawString(vm.main.time, kCenter, kMainY);
     g.setTextSize(1);
 
-    if (vm.main.band[0]) {
+    const layout::MidLines mid = layout::midLines(vm.main.band[0], vm.hasSecondary);
+    if (mid.bandBaseline) {
         g.setFont(&fonts::FreeSansBold24pt7b);
         g.setTextColor(vm.main.bandColor);
-        g.drawString(vm.main.band, kCenter, kBandY);
+        g.setTextDatum(baseline_center);
+        g.drawString(vm.main.band, kCenter, mid.bandBaseline);
+        g.setTextDatum(middle_center);
     }
 }
 
 void Renderer::drawSecondary(LovyanGFX& g, const ViewModel& vm) {
     if (!vm.hasSecondary) return;
+    const layout::MidLines mid = layout::midLines(vm.main.band[0], true);
     char line[40];
     snprintf(line, sizeof(line), "%s %s %s", vm.secondary.caption, vm.secondary.time,
              vm.secondary.band);
     g.setFont(&fonts::FreeSansBold12pt7b);
     g.setTextColor(vm.secondary.band[0] ? vm.secondary.bandColor : kText);
-    g.drawString(line, kCenter, kSecondaryY);
+    g.setTextDatum(baseline_center);
+    g.drawString(line, kCenter, mid.secondaryBaseline);
+    g.setTextDatum(middle_center);
 }
 
 void Renderer::drawHistory(LovyanGFX& g, const ViewModel& vm) {

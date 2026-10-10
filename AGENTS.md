@@ -67,7 +67,7 @@ A change is done when **all** of these are true:
 - [ ] **Pure logic has unit tests** in `test/`. Each test is a `TEST(name)` in a `test_*.cpp` file, picked up automatically.
 - [ ] **`scripts/verify.sh` passes:**
   - formatting
-  - 52+ unit tests
+  - 57+ unit tests
   - PlatformIO build with `-Werror` on our sources
   - Arduino CLI build with no warnings in our sources
   - On Windows without bash, run `scripts\verify.ps1`; CI runs the full gate.
@@ -125,6 +125,7 @@ The full list is in `docs/HARDWARE.md`. These are the ones that cause bugs:
 - **`M5.Power.isCharging()` returns an enum, not a bool.** Battery current isn't readable. `getVBUSVoltage()` returns mV, or -1.
 - **`M5.Power.setVibration(n)` runs until `setVibration(0)`.** Each call is an I²C write.
 - **OPI PSRAM must be enabled** (`qio_opi`), or M5GFX mis-renders the AMOLED.
+- **Text placement:** LovyanGFX datums align a font's *line box* (its tallest glyph to its lowest descender), not the visible caps. Don't eyeball Y positions on the round screen. Use the measured ink extents (`scripts/fontmetrics.py`) and the `ui/Layout.h` approach. That's how "DRAW" ended up touching the big number before.
 - **Light sleep:**
   - GPIO wake reprograms the pin's interrupt type, so detach the timing ISR first and re-attach it after.
   - The wake press must be swallowed with `ButtonLogic::suppressUntilRelease()`.

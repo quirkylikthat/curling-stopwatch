@@ -77,7 +77,7 @@ Nothing blocks. The only `delay()` is the 800 ms splash at boot.
 ### D2 — Pure "core" layer, unit-tested on the PC
 **Choice:** the timing state machine, debounce logic, band classification, formatting and screen-content logic have no Arduino or M5 includes. Time is always passed in as a parameter; core never reads a clock.
 **Why:**
-- Timing correctness is the product. A 52-test suite runs in under a second on a laptop (`make -C test`), with no flashing and no device.
+- Timing correctness is the product. A 57-test suite runs in under a second on a laptop (`make -C test`), with no flashing and no device.
 - M5Unified has broken APIs on this board before (0.2.21 changed the IO-expander API). Keeping device calls in `hal/` and `ui/` contains that churn.
 - Fake timestamps make edge cases trivial to test: bounce, timeouts, `millis()` wrap, ISR-vs-loop clock skew.
 
@@ -115,6 +115,8 @@ All three are configurable, and layers 2–3 are unit-tested.
 - The Renderer stays dumb and easy to restyle.
 
 The live value shows tenths because hundredths flicker unreadably. Final results show hundredths.
+
+**Vertical spacing** is computed from the fonts' measured *ink* (lit pixels), not hard-coded Y values (`ui/Layout.h`, unit-tested). Any lines between the big number and the history row (the band label and/or the secondary line) get equal gaps. LovyanGFX's `middle_center` centres a font's whole line box, including its tallest and lowest glyphs, so caps don't land where you'd guess. Re-measure with `scripts/fontmetrics.py` if fonts or sizes change.
 
 ### D9 — Haptics first, sound off
 **Choice:** every accepted tap gives a short buzz, a result gives a double buzz, and a cancel or timeout gives a long buzz. The speaker is off by default (`kBeepEnabled`).

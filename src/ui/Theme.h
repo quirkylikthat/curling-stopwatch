@@ -36,15 +36,29 @@ constexpr int kBatteryR1 = 230;
 constexpr float kBatteryArcStart = 225.0f;  // degrees, 0 = 3 o'clock, clockwise
 constexpr float kBatteryArcSpan = 90.0f;
 
-constexpr int kModeY = 70;        // "SPLIT"
-constexpr int kDotsY = 104;       // gate progress dots
-constexpr int kHintY = 142;       // "NEXT: NEAR HOG" (or the main readout's caption)
-constexpr int kMainY = 222;       // big number
-constexpr int kBandY = 296;       // "DRAW"
-constexpr int kSecondaryY = 342;  // "SPLIT 3.82 DRAW" on 3-gate profiles
-constexpr int kHistoryY = 392;    // previous results
+constexpr int kModeY = 70;      // "SPLIT"
+constexpr int kDotsY = 104;     // gate progress dots
+constexpr int kHintY = 142;     // "NEXT: NEAR HOG" (or the main readout's caption)
+constexpr int kMainY = 222;     // big number (middle_center)
+constexpr int kHistoryY = 392;  // previous results (middle_center)
+// The band label ("DRAW") and the secondary line ("SPLIT 3.82 DRAW") have no
+// fixed Y: ui/Layout.h spaces whichever are shown evenly between the big
+// number and the history row.
 
 constexpr float kMainTextSize = 2.3f;  // Font7 (7-segment) is 48 px tall at size 1
+
+// Ink extents (lit pixels, not line boxes) from the font data -- re-measure with
+// scripts/fontmetrics.py if a font, size or M5GFX version changes.
+//   Font7: 48 px cell, ink rows 1..46. LovyanGFX middle datum puts the cell
+//   top at y - h/2. GFX fonts: middle datum top = y - height/2, and the
+//   baseline is `baseline` px below that.
+constexpr int kMainInkBottom =
+    kMainY - static_cast<int>(48 * kMainTextSize) / 2 + static_cast<int>(47 * kMainTextSize);
+constexpr int kHistoryInkTop = kHistoryY - 23 / 2 + 17 - 16;  // FreeSans12pt7b digits
+constexpr int kBandInkAbove = 34;       // FreeSansBold24pt7b caps: px above baseline ...
+constexpr int kBandInkBelow = 2;        // ... and below (round-letter overshoot)
+constexpr int kSecondaryInkAbove = 17;  // FreeSansBold12pt7b caps/digits
+constexpr int kSecondaryInkBelow = 1;
 
 // History screen (title uses kModeY). Rows run y = 136..379; the visible chord
 // is >= 360 px wide there, so three columns fit with margin.
