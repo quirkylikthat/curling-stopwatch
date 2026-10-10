@@ -116,6 +116,9 @@ constexpr uint8_t kBrightnessDim = 30;
 constexpr Millis kDimAfterMs = 60UL * 1000UL;                // 1 min
 constexpr Millis kLightSleepAfterMs = 10UL * 60UL * 1000UL;  // 10 min
 constexpr Millis kDeepSleepAfterMs = 30UL * 60UL * 1000UL;   // 30 min
+//constexpr Millis kDimAfterMs = 20UL * 1000UL;                // 20 seconds 
+//constexpr Millis kLightSleepAfterMs = 40UL * 1000UL;  // 40 seconds
+//constexpr Millis kDeepSleepAfterMs = 60UL * 1000UL;   // 60 seconds
 
 // Yellow press that wakes from LIGHT sleep also counts as a timing tap (wake-up
 // takes ~1 ms, so the split is still accurate). After DEEP sleep the device has
