@@ -10,16 +10,16 @@ Firmware for the [M5Stack StopWatch](https://docs.m5stack.com/en/core/StopWatch)
 | HOG-HOG | near hog → far hog | Stone speed / ice speed ("ice is running 14") |
 | SPLIT+H2H | back line → near hog → far hog | Both, from one stone |
 
-> The weight bands in `src/Config.h` are **placeholders**. Calibrate them on your own ice.
+> The default weight bands in `src/Config.h` are **placeholders**. Calibrate them for your ice in **Menu → Settings → Split bands**.
 
 ## Controls
 
 | Input | Action |
 |---|---|
-| Yellow, tap | Start, then stop, at each line. Every accepted tap buzzes. On the history screen, it jumps back **and** starts timing. |
-| Blue, click | While timing: cancel (false start). On the history screen: back. Otherwise: next mode. Reacts about 0.3 s after release, because it waits to rule out a double-click. |
+| Yellow, tap | Start, then stop, at each line. Every accepted tap buzzes. On the history screen or in the menu, it jumps back **and** starts timing. |
+| Blue, click | While timing: cancel (false start). On the history screen or in the menu: back. Otherwise: next mode. Reacts about 0.3 s after release, because it waits to rule out a double-click. |
 | Blue, double-click | Open or close the **history screen** |
-| Blue, hold (0.8 s) | Clear history |
+| Blue, hold (2 s) | Open the **menu**. Hold again to leave it. |
 | Power, click / double-click | Reset / power off (hardware) |
 
 **History screen:** the last 10 throws, newest at the top.
@@ -28,6 +28,17 @@ Firmware for the [M5Stack StopWatch](https://docs.m5stack.com/en/core/StopWatch)
 - **A throw timed in SPLIT+H2H mode** shows both values on one row.
 - **A throw that only has one of the two** shows `-` in the other column.
 - **The small `#n`** is the throw's sequence number, which matches the serial log.
+
+**Menu** (off the ice; it uses the **touchscreen**, and touch is ignored on the timing and history screens):
+
+| Item | What it does |
+|---|---|
+| **Settings → Brightness** | Drag the slider. The screen changes live. |
+| **Settings → Split bands** | Change each band's upper limit (−/+ in 0.05 s steps; limits always stay in order). **SHIFT ALL** moves every band together when the ice speed changes. **RESET** restores the defaults. |
+| **Export** | Placeholder for later. |
+| **Clear history** | Asks first, then deletes the stored results. |
+
+**BACK** on the screen, or a blue click, goes up one level. Settings are saved to flash when you leave a page or the menu, and they survive power-off.
 
 Results also go out over USB serial at 115200 baud as `csv,...` lines, for logging.
 
@@ -118,7 +129,7 @@ v0.1.0 builds with zero warnings from our code under both toolchains: board pack
 
 ## Unit tests (no device needed)
 
-The timing logic in `src/core/` and the screen logic in `src/app/ViewBuilder.cpp` are plain C++, with 57 tests that run on a PC. Either command runs the same tests:
+The timing logic in `src/core/` and the pure app logic in `src/app/` (screen content, settings, menu) are plain C++, with 70 tests that run on a PC. Either command runs the same tests:
 
 ```bash
 pio run -e native -t tests    # PlatformIO

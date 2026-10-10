@@ -77,7 +77,7 @@ Nothing blocks. The only `delay()` is the 800 ms splash at boot.
 ### D2 — Pure "core" layer, unit-tested on the PC
 **Choice:** the timing state machine, debounce logic, band classification, formatting and screen-content logic have no Arduino or M5 includes. Time is always passed in as a parameter; core never reads a clock.
 **Why:**
-- Timing correctness is the product. A 57-test suite runs in under a second on a laptop (`make -C test`), with no flashing and no device.
+- Timing correctness is the product. A 70-test suite runs in under a second on a laptop (`make -C test`), with no flashing and no device.
 - M5Unified has broken APIs on this board before (0.2.21 changed the IO-expander API). Keeping device calls in `hal/` and `ui/` contains that churn.
 - Fake timestamps make edge cases trivial to test: bounce, timeouts, `millis()` wrap, ISR-vs-loop clock skew.
 
@@ -236,6 +236,31 @@ Navigation:
 
 **Revisit if:** measurements show different priorities.
 
+### D21 — Touch menu on a 2 s blue hold: settings (brightness, split bands), export, clear history
+**Choice:**
+- **Opening and closing:** a **2 s blue hold** opens the menu, and holding again leaves it.
+- **Input:** the menu is driven by the **touchscreen**. **BACK** or a blue click goes up one level.
+- **Pages:**
+  - **Settings → Brightness:** a live slider.
+  - **Settings → Split bands:** −/+ in 0.05 s steps per limit, **SHIFT ALL**, **RESET**.
+  - **Export:** a placeholder.
+  - **Clear history:** with a confirm step. It moved here from the old 0.8 s hold.
+- **Storage:** settings are kept in NVS as a versioned blob.
+
+**Why:**
+- **Touch fits the use case.** The menu is used off the ice, without gloves, and touch makes a slider and ±-buttons practical. During play touch stays **ignored** (invariant 7), and yellow still jumps back and times from any menu page.
+- **Clear history moved because of the hold.** A 2 s hold passes the 0.8 s mark on the way, so keeping clear-history on a hold would have wiped the history every time the menu opened. A destructive action shouldn't hang off an ambiguous gesture, so it now asks first.
+- **The pure parts are testable.** `app/UserSettings` holds the editing rules: limits stay ordered and at least 0.05 s apart, within 1.50–8.00 s, and SHIFT ALL keeps the spacing. `app/Menu` does page navigation and hit-testing. `ui/MenuLayout` holds the touch targets, which the Renderer draws and the Menu hit-tests from the same constants. The tests also check that every target fits inside the round screen without overlapping.
+- **Limits are stored in 1/100 s integers.** That gives exact 0.05 s steps and no float drift.
+- **User bands are built at runtime.** `settings::makeSplitBands()` combines Config labels and colours with the user's limits, so the timing screen, the history colours and the band label all use the user's values.
+- **Storage is written sparingly.** Settings are written on leaving an editor page, leaving the menu, or going to sleep, not on every slider sample, to save flash wear. Brightness is applied live while you drag.
+- **Stored settings are checked on load.** The blob carries a version, and `isValid()` is checked when it's read. A layout change or corrupt data falls back to the defaults instead of misreading bytes.
+
+**Revisit if:**
+- Export lands (D2x).
+- More settings are needed. Add a `UserSettings` field and bump `kUserVersion` in `App.cpp`.
+- Holding −/+ should auto-repeat.
+
 ## 3. How to extend
 
 | You want to… | Do this |
@@ -282,6 +307,18 @@ The pins and polarity were confirmed from the M5Unified source. These can only b
     - The boot log shouldn't show `[hw] IMU suspend failed`.
     - Timing, buttons, haptics and the live display should feel the same as before the 1 ms loop pause.
     - Optional, with an inline USB meter on a fully charged device: compare the current awake, in light sleep and in deep sleep against the old firmware.
+11. **Menu (D21).**
+    - **Opening:** hold blue for 2 s. You should feel a double buzz and see the MENU page.
+    - **Touch:** taps should hit the button under your finger on every page.
+    - **Going back:** BACK and a blue click should both go up one level.
+    - **Brightness:** dragging the slider should change brightness live. Leave the menu, power-cycle, and the brightness should stay.
+    - **Split bands:** move DRAW up with +, then time a split near the old and new limits; the label and colour should follow the new limits.
+      - SHIFT ALL should move every limit together.
+      - RESET should restore 2.90 / 3.20 / 3.50 / 3.75 / 4.15.
+      - Your values should survive a power-cycle.
+    - **Clear history:** CANCEL should keep the history, and CLEAR should empty it.
+    - **Yellow from any menu page:** the device should jump back and start timing.
+    - **Touch during play:** touching the timing or history screen should do nothing.
 
 ## 5. Roadmap ideas (to discuss)
 

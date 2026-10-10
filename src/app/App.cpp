@@ -8,13 +8,26 @@ namespace curl {
 
 using namespace config;
 
+namespace {
+// NVS blob for the user's menu settings. Bump kUserVersion whenever the
+// UserSettings layout changes: an old blob then fails to load (size/version
+// mismatch) and the defaults are used instead of misread bytes.
+constexpr const char* kUserKey = "user";
+constexpr uint16_t kUserVersion = 1;
+struct StoredUser {
+    uint16_t version;
+    UserSettings settings;
+};
+}  // namespace
+
 App::App() : timer_(kMinTapGapUs) {}
 
 void App::begin() {
     hw_.begin();
     settings_.begin();
+    loadUserSettings();
     renderer_.begin();
-    hw_.setBrightness(kBrightnessActive);
+    hw_.setBrightness(user_.brightness);
 
     const bool resumed = hw_.wokeFromDeepSleep();
     if (!resumed) renderer_.splash(kFirmwareVersion);
@@ -77,8 +90,9 @@ void App::handle(const InputEvent& e, Millis nowMs) {
 
     switch (e.type) {
         case InputType::TimingTap:
-            // From the history screen: jump back AND time -- the tap is never lost.
-            showingHistory_ = false;
+            // From the history screen or the menu: jump back AND time -- the
+            // tap is never lost.
+            showTiming();
             switch (timer_.onTap(e.timestamp)) {
                 case SequenceTimer::TapResult::Started:
                     timedOut_ = false;
@@ -99,8 +113,10 @@ void App::handle(const InputEvent& e, Millis nowMs) {
             break;
 
         case InputType::ControlClick:
-            if (showingHistory_) {
-                showingHistory_ = false;  // "back" -- doesn't also change mode
+            if (view_ == View::Menu) {
+                onMenuAction(menu_.back(), nowMs);  // back one page (or out of the menu)
+            } else if (view_ == View::History) {
+                view_ = View::Timing;  // "back" -- doesn't also change mode
                 haptics_.tap(nowMs);
             } else if (timer_.isRunning()) {
                 timer_.cancel();  // false start: abandon this run
@@ -111,19 +127,87 @@ void App::handle(const InputEvent& e, Millis nowMs) {
             }
             break;
 
-        case InputType::ControlHold:
+        case InputType::ControlHold:  // 2 s: open the menu, or leave it
+            if (view_ == View::Menu) {
+                showTiming();
+            } else {
+                menu_.open();
+                view_ = View::Menu;
+            }
+            haptics_.result(nowMs);
+            break;
+
+        case InputType::ControlDoubleClick:
+            if (view_ == View::Menu) break;  // no meaning inside the menu
+            view_ = (view_ == View::History) ? View::Timing : View::History;
+            haptics_.tap(nowMs);
+            break;
+
+        case InputType::TouchTap:
+            if (view_ == View::Menu) onMenuAction(menu_.tap(e.x, e.y, user_), nowMs);
+            break;  // touch is ignored outside the menu (in-game screens)
+
+        case InputType::TouchDrag:
+            if (view_ == View::Menu) onMenuAction(menu_.drag(e.x, e.y, user_), nowMs);
+            break;
+    }
+}
+
+void App::onMenuAction(Menu::Action a, Millis nowMs) {
+    switch (a) {
+        case Menu::Action::None:
+            return;
+        case Menu::Action::Navigated:
+            saveUserSettingsIfChanged();  // leaving an editor page
+            haptics_.tap(nowMs);
+            return;
+        case Menu::Action::SettingsChanged:
+            splitBands_ = settings::makeSplitBands(user_);
+            userDirty_ = true;
+            haptics_.tap(nowMs);
+            return;
+        case Menu::Action::BrightnessChanged:
+            hw_.setBrightness(user_.brightness);  // live preview while dragging
+            userDirty_ = true;
+            return;  // no buzz: it would fire on every drag sample
+        case Menu::Action::ClearHistory:
             timer_.cancel();
             history_.clear();
             timedOut_ = false;
             haptics_.cancel(nowMs);
             Serial.println("[app] history cleared");
-            break;
-
-        case InputType::ControlDoubleClick:
-            showingHistory_ = !showingHistory_;
+            return;
+        case Menu::Action::Exit:
+            showTiming();
             haptics_.tap(nowMs);
-            break;
+            return;
     }
+}
+
+void App::showTiming() {
+    if (view_ == View::Menu) saveUserSettingsIfChanged();
+    view_ = View::Timing;
+}
+
+void App::loadUserSettings() {
+    StoredUser stored{};
+    if (settings_.loadBlob(kUserKey, &stored, sizeof(stored)) && stored.version == kUserVersion &&
+        settings::isValid(stored.settings)) {
+        user_ = stored.settings;
+    } else {
+        user_ = settings::defaults();
+    }
+    splitBands_ = settings::makeSplitBands(user_);
+}
+
+void App::saveUserSettingsIfChanged() {
+    if (!userDirty_) return;
+    StoredUser stored{};
+    stored.version = kUserVersion;
+    stored.settings = user_;
+    settings_.saveBlob(kUserKey, &stored, sizeof(stored));
+    userDirty_ = false;
+    Serial.println("[app] settings saved");
 }
 
 void App::onMeasurement(const Measurement& m) {
@@ -151,7 +235,7 @@ void App::noteActivity(Millis nowMs) {
     lastActivityMs_ = nowMs;
     if (dimmed_) {
         dimmed_ = false;
-        hw_.setBrightness(kBrightnessActive);
+        hw_.setBrightness(user_.brightness);
     }
 }
 
@@ -168,7 +252,9 @@ void App::updatePower(Millis nowMs) {
         case PowerLevel::Dim:
             if (!dimmed_) {
                 dimmed_ = true;
-                hw_.setBrightness(kBrightnessDim);
+                // Never "dim" to something brighter than the user's setting.
+                hw_.setBrightness(kBrightnessDim < user_.brightness ? kBrightnessDim
+                                                                    : user_.brightness);
             }
             break;
         case PowerLevel::LightSleep:
@@ -181,7 +267,7 @@ void App::updatePower(Millis nowMs) {
 
 void App::enterLightSleep(Millis budgetMs) {
     haptics_.stop();
-    showingHistory_ = false;  // always wake up on the timing screen
+    showTiming();  // always wake up on the timing screen (saves menu edits)
     const Hardware::WakeResult r = hw_.lightSleep(budgetMs);
 
     switch (r.reason) {
@@ -209,12 +295,13 @@ void App::enterLightSleep(Millis budgetMs) {
     // Yellow: the stone may already be moving -- the wake press is the first
     // gate, timestamped ~1 ms after the press. Blue only wakes.
     if (r.reason == Hardware::WakeReason::TimingButton && kLightSleepWakeTapCounts) {
-        handle({InputType::TimingTap, r.wokeAt}, nowMs);
+        handle({InputType::TimingTap, r.wokeAt, 0, 0}, nowMs);
     }
 }
 
 void App::enterDeepSleep() {
     haptics_.stop();
+    saveUserSettingsIfChanged();
     sleepmem::save(history_, timer_.nextSequence());
     Serial.printf("[app] deep sleep, %u results saved\n", static_cast<unsigned>(history_.size()));
     hw_.deepSleep();
@@ -225,9 +312,11 @@ void App::updateDisplay(Micros now, Millis nowMs) {
     lastFrameMs_ = nowMs;
 
     ViewModel vm;
-    buildView({timer_, profile(), history_, now, hw_.batteryPercent(), hw_.isCharging(), timedOut_,
-               showingHistory_},
-              vm);
+    const Menu::Page page = menu_.page();
+    buildView(
+        {timer_, profile(), history_, now, hw_.batteryPercent(), hw_.isCharging(), timedOut_,
+         view_ == View::History, splitBands_.bands, view_ == View::Menu ? &page : nullptr, &user_},
+        vm);
     if (haveView_ && vm == lastView_) return;  // nothing changed: skip the ~20 ms push
 
     renderer_.render(vm);

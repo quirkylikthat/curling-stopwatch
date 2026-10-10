@@ -93,14 +93,18 @@ void Hardware::update() {
     const Millis nowMs = nowMillis();
 
     const uint8_t c = control_.update(nowMs, readPressed(config::kPinControlButton));
-    if (c & ButtonLogic::Click) fifo_.push({InputType::ControlClick, nowMicros()});
-    if (c & ButtonLogic::Hold) fifo_.push({InputType::ControlHold, nowMicros()});
-    if (c & ButtonLogic::DoubleClick) fifo_.push({InputType::ControlDoubleClick, nowMicros()});
+    if (c & ButtonLogic::Click) fifo_.push({InputType::ControlClick, nowMicros(), 0, 0});
+    if (c & ButtonLogic::Hold) fifo_.push({InputType::ControlHold, nowMicros(), 0, 0});
+    if (c & ButtonLogic::DoubleClick) {
+        fifo_.push({InputType::ControlDoubleClick, nowMicros(), 0, 0});
+    }
 
     if (!config::kUseInterruptTiming) {
         const uint8_t t = timingPoll_.update(nowMs, readPressed(config::kPinTimingButton));
-        if (t & ButtonLogic::Pressed) fifo_.push({InputType::TimingTap, nowMicros()});
+        if (t & ButtonLogic::Pressed) fifo_.push({InputType::TimingTap, nowMicros(), 0, 0});
     }
+
+    pollTouch();
 
     if (nowMs - lastBatteryPollMs_ >= config::kBatteryPollMs) {
         lastBatteryPollMs_ = nowMs;
@@ -112,7 +116,7 @@ bool Hardware::pollEvent(InputEvent& out) {
     if (gTapQueue) {
         Micros t;
         if (xQueueReceive(gTapQueue, &t, 0) == pdTRUE) {
-            out = {InputType::TimingTap, t};
+            out = {InputType::TimingTap, t, 0, 0};
             return true;
         }
     }
@@ -136,6 +140,24 @@ void Hardware::readBattery() {
     charging_ = M5.Power.isCharging() == m5::Power_Class::is_charging;
     // VBUS in mV from the M5PM1, or -1 if it can't be read (-> treat as battery).
     usbPower_ = M5.Power.getVBUSVoltage() >= config::kUsbPresentMillivolts;
+}
+
+void Hardware::pollTouch() {
+    // M5.update() already read the CST820. Report a tap when a finger lifts
+    // without having dragged, and a drag sample whenever a held finger moves
+    // (or first lands) -- the slider follows those.
+    if (!M5.Touch.isEnabled()) return;
+    const auto t = M5.Touch.getDetail();
+    if (t.wasClicked()) fifo_.push({InputType::TouchTap, nowMicros(), t.x, t.y});
+    if (t.isPressed()) {
+        if (t.wasPressed() || t.x != lastTouchX_ || t.y != lastTouchY_) {
+            fifo_.push({InputType::TouchDrag, nowMicros(), t.x, t.y});
+            lastTouchX_ = t.x;
+            lastTouchY_ = t.y;
+        }
+    } else {
+        lastTouchX_ = lastTouchY_ = -1;
+    }
 }
 
 // --- Power -------------------------------------------------------------------

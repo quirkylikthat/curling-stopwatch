@@ -15,14 +15,14 @@ The owner is **Mike**. He rates his C++ as "some experience". He wants design de
 
 | File | Why |
 |---|---|
-| `docs/ARCHITECTURE.md` | Layers, main loop, **decision log D1–D20**. Don't contradict a decision without adding a new one that supersedes it. |
+| `docs/ARCHITECTURE.md` | Layers, main loop, **decision log D1–D21**. Don't contradict a decision without adding a new one that supersedes it. |
 | `docs/HARDWARE.md` | Pins, M5Unified API facts, sleep and wake details. Some items are verified from library source and some aren't; it says which. |
 | `docs/STATUS.md` | What's verified **on the device** versus only compiled or unit-tested. |
 | `src/Config.h` | Every tunable. |
 
 ## 2. Invariants (do not break)
 
-1. **`src/core/` is pure C++17.** No Arduino, M5, ESP-IDF or FreeRTOS includes. Time is always passed in, never read. The same applies to `src/Config.h`, `src/ui/ViewModel.h` and `src/app/ViewBuilder.*`. This is what lets the unit tests run on a PC.
+1. **`src/core/` is pure C++17.** No Arduino, M5, ESP-IDF or FreeRTOS includes. Time is always passed in, never read. The same applies to `src/Config.h`, `src/ui/ViewModel.h`, `src/ui/Layout.h`, `src/ui/MenuLayout.h` and the pure app files `src/app/ViewBuilder.*`, `UserSettings.*` and `Menu.*`. This is what lets the unit tests run on a PC. New pure app files must be added to both `test/Makefile` (`PURE_APP`) and `[env:native]` in `platformio.ini`.
 2. **Dependency direction:**
    - `core` depends on nothing.
    - `hal` and `ui` may use `core`.
@@ -42,7 +42,11 @@ The owner is **Mike**. He rates his C++ as "some experience". He wants design de
    - Keep the ISR tiny: no `Serial`, no M5 calls, no allocation.
    - Don't switch timing to `M5.BtnA`/`BtnB` or to polling.
    - Use the same button for start and stop.
-7. **A timing tap is never lost to power saving.** Dim → tap counts. Light-sleep wake by yellow → it counts as the first gate.
+7. **A timing tap is never lost** to power saving or navigation:
+   - Dim: the tap counts.
+   - Light-sleep wake by yellow: it counts as the first gate.
+   - History screen or menu: yellow jumps back and times.
+   - **Touch is only acted on inside the menu** (gloves, accidental contact during play).
 8. **Times are truncated, not rounded** (stopwatch convention).
 9. **Screen = f(state).**
    - `ViewBuilder` builds a `ViewModel`, and `Renderer` draws it into the PSRAM canvas.
@@ -67,7 +71,7 @@ A change is done when **all** of these are true:
 - [ ] **Pure logic has unit tests** in `test/`. Each test is a `TEST(name)` in a `test_*.cpp` file, picked up automatically.
 - [ ] **`scripts/verify.sh` passes:**
   - formatting
-  - 57+ unit tests
+  - 70+ unit tests
   - PlatformIO build with `-Werror` on our sources
   - Arduino CLI build with no warnings in our sources
   - On Windows without bash, run `scripts\verify.ps1`; CI runs the full gate.

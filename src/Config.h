@@ -36,7 +36,7 @@ constexpr bool kUseInterruptTiming = true;
 
 // --- Input timing -----------------------------------------------------------
 constexpr Millis kControlDebounceMs = 25;
-constexpr Millis kControlHoldMs = 800;  // blue long-press threshold
+constexpr Millis kControlHoldMs = 2000;  // blue long press: open / close the menu
 // Blue double-click window. A single click is only acted on once this has
 // passed without a second press, so mode change / cancel react ~0.3 s later.
 constexpr Millis kControlDoubleClickMs = 300;
@@ -108,6 +108,7 @@ constexpr Millis kFrameIntervalMs = 33;  // ~30 fps cap while values change
 constexpr Millis kBatteryPollMs = 5000;
 constexpr uint8_t kBrightnessActive = 180;  // 0-255
 constexpr uint8_t kBrightnessDim = 30;
+constexpr uint8_t kBrightnessMin = 20;  // lowest the Settings slider goes (~8%)
 
 // --- Power saving -------------------------------------------------------------
 // Idle = no button input and no timing run in progress. Stages (0 = disabled):

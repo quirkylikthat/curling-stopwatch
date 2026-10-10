@@ -10,7 +10,9 @@ constexpr Micros s(double seconds) { return static_cast<Micros>(seconds * 1e6 + 
 ViewModel build(const SequenceTimer& t, uint8_t profile, const History& h, Micros now,
                 bool timedOut = false, bool showHistory = false) {
     ViewModel vm;
-    buildView({t, config::kProfiles[profile], h, now, 80, false, timedOut, showHistory}, vm);
+    buildView({t, config::kProfiles[profile], h, now, 80, false, timedOut, showHistory, nullptr,
+               nullptr, nullptr},
+              vm);
     return vm;
 }
 
@@ -208,4 +210,54 @@ TEST(view_equality_detects_changes) {
     t.onTap(s(1));
     CHECK(build(t, 0, h, s(2.01)) == build(t, 0, h, s(2.05)));  // same tenth -> no redraw
     CHECK(build(t, 0, h, s(2.01)) != build(t, 0, h, s(2.15)));
+}
+
+// ---- User settings: runtime split bands + menu view ---------------------------
+
+TEST(view_uses_user_split_bands) {
+    SequenceTimer t(config::kMinTapGapUs);
+    History h;
+    throwStone(t, h, 0, 0, 4.20);  // GUARD with the defaults (DRAW < 4.15)
+    UserSettings user = settings::defaults();
+    settings::shiftAllLimits(user, +20);  // keen ice: DRAW < 4.35
+    const settings::SplitBands bands = settings::makeSplitBands(user);
+
+    ViewModel vm;
+    buildView(
+        {t, config::kProfiles[0], h, s(30), 80, false, false, false, bands.bands, nullptr, &user},
+        vm);
+    CHECK_STR(vm.main.band, "DRAW");
+    CHECK_STR(build(t, 0, h, s(30)).main.band, "GUARD");  // defaults unchanged
+
+    buildView(
+        {t, config::kProfiles[0], h, s(30), 80, false, false, true, bands.bands, nullptr, &user},
+        vm);
+    CHECK_EQ(vm.rows[0].splitColor, bandFor(IntervalKind::Split, 4.20f, bands.bands)->color);
+}
+
+TEST(view_menu_page) {
+    SequenceTimer t(config::kMinTapGapUs);
+    History h;
+    throwStone(t, h, 0, 0, 3.8);
+    UserSettings user = settings::defaults();
+    settings::setBrightness(user, 128);
+    ViewModel vm;
+    const MenuPage page = MenuPage::Bands;
+    buildView({t, config::kProfiles[0], h, s(10), 80, false, false, false, nullptr, &page, &user},
+              vm);
+    CHECK(vm.screen == ViewModel::Screen::Menu);
+    CHECK(vm.menu.page == MenuPage::Bands);
+    CHECK_EQ(vm.menu.brightness, 128);
+    CHECK_EQ(vm.menu.brightnessPercent, 50);
+    CHECK_EQ(vm.menu.limitCount, kSplitLimitCount);
+    CHECK_EQ(vm.menu.limitsCs[4], 415);
+    CHECK_EQ(vm.menu.historyCount, 1);
+    CHECK_EQ(vm.gateCount, 0);
+
+    // A change the user makes shows up (and triggers a redraw).
+    ViewModel before = vm;
+    settings::adjustLimit(user, 4, +5);
+    buildView({t, config::kProfiles[0], h, s(10), 80, false, false, false, nullptr, &page, &user},
+              vm);
+    CHECK(vm != before);
 }

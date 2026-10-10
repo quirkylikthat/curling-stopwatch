@@ -18,4 +18,13 @@ void Settings::setProfileIndex(uint8_t index) {
     if (ok_) prefs_.putUChar(kKeyProfile, index);
 }
 
+bool Settings::loadBlob(const char* key, void* data, size_t len) {
+    if (!ok_ || !prefs_.isKey(key) || prefs_.getBytesLength(key) != len) return false;
+    return prefs_.getBytes(key, data, len) == len;
+}
+
+void Settings::saveBlob(const char* key, const void* data, size_t len) {
+    if (ok_) prefs_.putBytes(key, data, len);
+}
+
 }  // namespace curl

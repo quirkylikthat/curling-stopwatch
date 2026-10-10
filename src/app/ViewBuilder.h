@@ -7,6 +7,7 @@
 #include "../core/SequenceTimer.h"
 #include "../core/Types.h"
 #include "../ui/ViewModel.h"
+#include "UserSettings.h"
 
 namespace curl {
 
@@ -21,12 +22,18 @@ struct ViewInputs {
     bool charging;
     bool timedOut;     // last run timed out with nothing captured
     bool showHistory;  // history screen instead of the timing screen
+    // Split bands in use (kSplitBandCount entries, from the user's settings);
+    // nullptr = the Config.h defaults.
+    const Band* splitBands;
+    // Menu page to show, or nullptr = not in the menu. `user` is required then.
+    const MenuPage* menuPage;
+    const UserSettings* user;
 };
 
 void buildView(const ViewInputs& in, ViewModel& out);
 
-// Exposed for tests / serial logging.
+// Exposed for tests / serial logging. `splitBands` as in ViewInputs.
 const char* intervalName(IntervalKind kind);
-const Band* bandFor(IntervalKind kind, float seconds);
+const Band* bandFor(IntervalKind kind, float seconds, const Band* splitBands = nullptr);
 
 }  // namespace curl

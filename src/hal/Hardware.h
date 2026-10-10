@@ -65,6 +65,10 @@ private:
     void attachTimingInterrupt();
     void detachTimingInterrupt();
     void suspendImu();
+    void pollTouch();
+
+    int16_t lastTouchX_ = -1;
+    int16_t lastTouchY_ = -1;
 
     bool usbPower_ = false;
     bool wokeFromDeepSleep_ = false;

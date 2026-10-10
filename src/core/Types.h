@@ -68,13 +68,17 @@ struct Measurement {
 enum class InputType : uint8_t {
     TimingTap,           // yellow button: precise timestamp captured in an ISR
     ControlClick,        // blue button short press
-    ControlHold,         // blue button long press
+    ControlHold,         // blue button long press (2 s: opens / closes the menu)
     ControlDoubleClick,  // blue button double press (toggles the history screen)
+    TouchTap,            // finger lifted without dragging, at (x, y)
+    TouchDrag,           // finger down or moving, at (x, y)
 };
 
 struct InputEvent {
     InputType type;
     Micros timestamp;
+    int16_t x;  // touch position in screen pixels (touch events only)
+    int16_t y;
 };
 
 }  // namespace curl

@@ -26,8 +26,21 @@ struct HistoryRow {
     char hogToHog[8];     // "14.31", or "-"
 };
 
+// Menu pages (Screen::Menu). app/Menu navigates between them.
+enum class MenuPage : uint8_t { Main, Settings, Brightness, Bands, Export, ConfirmClear };
+
+struct MenuView {
+    static constexpr uint8_t kMaxLimits = 8;
+    MenuPage page;
+    uint8_t brightness;  // 0-255 (slider position)
+    uint8_t brightnessPercent;
+    uint8_t limitCount;
+    uint16_t limitsCs[kMaxLimits];  // split-band upper limits, 1/100 s
+    uint8_t historyCount;           // for "clear N results?"
+};
+
 struct ViewModel {
-    enum class Screen : uint8_t { Ready, Running, Result, History };
+    enum class Screen : uint8_t { Ready, Running, Result, History, Menu };
     static constexpr uint8_t kMaxHistoryRows = 10;
 
     Screen screen;
@@ -46,6 +59,9 @@ struct ViewModel {
     // Screen::History only: newest first.
     uint8_t rowCount;
     HistoryRow rows[kMaxHistoryRows];
+
+    // Screen::Menu only.
+    MenuView menu;
 
     int8_t batteryPercent;  // -1 = unknown
     bool charging;

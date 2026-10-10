@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "Layout.h"
+#include "MenuLayout.h"
 #include "Theme.h"
 
 namespace curl {
@@ -52,6 +53,13 @@ void Renderer::render(const ViewModel& vm) {
     g.setTextSize(1);
 
     drawBattery(g, vm);
+
+    if (vm.screen == ViewModel::Screen::Menu) {
+        drawMenu(g, vm.menu);
+        g.endWrite();
+        present();
+        return;
+    }
 
     g.setFont(&fonts::FreeSansBold12pt7b);
     g.setTextColor(kTextDim);
@@ -154,6 +162,129 @@ void Renderer::drawHistory(LovyanGFX& g, const ViewModel& vm) {
     g.setFont(&fonts::FreeSans12pt7b);
     g.setTextColor(kTextDim);
     g.drawString(line, kCenter, kHistoryY);
+}
+
+// --- Menu ----------------------------------------------------------------------
+
+namespace {
+
+using menu_layout::Rect;
+
+void title(LovyanGFX& g, const char* text, int y = menu_layout::kTitleY) {
+    g.setFont(&fonts::FreeSansBold12pt7b);
+    g.setTextColor(kTextDim);
+    g.setTextDatum(middle_center);
+    g.drawString(text, kCenter, y);
+}
+
+void button(LovyanGFX& g, const Rect& r, const char* label, uint16_t fill = kButton) {
+    g.fillRoundRect(r.left(), r.top(), r.w, r.h, r.h / 3, fill);
+    g.setFont(&fonts::FreeSansBold12pt7b);
+    g.setTextColor(kText);
+    g.setTextDatum(middle_center);
+    g.drawString(label, r.cx, r.cy);
+}
+
+void iconButton(LovyanGFX& g, const Rect& r, bool plus) {
+    g.fillRoundRect(r.left(), r.top(), r.w, r.h, r.h / 3, kButton);
+    g.fillRect(r.cx - 9, r.cy - 2, 18, 4, kText);  // "-"
+    if (plus) g.fillRect(r.cx - 2, r.cy - 9, 4, 18, kText);
+}
+
+void cs(char* buf, size_t len, uint16_t centis) {
+    snprintf(buf, len, "%u.%02u", centis / 100u, centis % 100u);
+}
+
+}  // namespace
+
+void Renderer::drawMenu(LovyanGFX& g, const MenuView& m) {
+    using namespace menu_layout;
+    switch (m.page) {
+        case MenuPage::Main:
+            title(g, "MENU");
+            button(g, kMainItems[0], "SETTINGS");
+            button(g, kMainItems[1], "EXPORT");
+            button(g, kMainItems[2], "CLEAR HISTORY");
+            button(g, kBack, "BACK");
+            break;
+
+        case MenuPage::Settings:
+            title(g, "SETTINGS");
+            button(g, kSettingsItems[0], "BRIGHTNESS");
+            button(g, kSettingsItems[1], "SPLIT BANDS");
+            button(g, kBack, "BACK");
+            break;
+
+        case MenuPage::Brightness: {
+            title(g, "BRIGHTNESS");
+            char pct[8];
+            snprintf(pct, sizeof(pct), "%u%%", static_cast<unsigned>(m.brightnessPercent));
+            g.setFont(&fonts::FreeSansBold24pt7b);
+            g.setTextColor(kText);
+            g.drawString(pct, kCenter, kBrightnessValueY);
+            const int knob = sliderX(m.brightness);
+            g.fillRoundRect(kSliderX0, kSliderY - 4, kSliderX1 - kSliderX0, 8, 4, kTrack);
+            g.fillRoundRect(kSliderX0, kSliderY - 4, knob - kSliderX0, 8, 4, kAccent);
+            g.fillCircle(knob, kSliderY, kSliderKnobR, kText);
+            button(g, kBack, "BACK");
+            break;
+        }
+
+        case MenuPage::Bands: {
+            title(g, "SPLIT BANDS", kBandsTitleY);
+            g.setFont(&fonts::FreeSans9pt7b);
+            g.setTextColor(kTextFaint);
+            g.drawString("UP TO (S)", kBandValueX, kBandHeaderY);
+            char value[8];
+            for (uint8_t row = 0; row < m.limitCount; ++row) {
+                const int y = bandRowY(row);
+                g.setFont(&fonts::FreeSansBold12pt7b);
+                g.setTextDatum(middle_left);
+                g.setTextColor(config::kSplitBands[row].color);
+                g.drawString(config::kSplitBands[row].label, kBandLabelX, y);
+                g.setTextDatum(middle_center);
+                g.setTextColor(kText);
+                cs(value, sizeof(value), m.limitsCs[row]);
+                g.drawString(value, kBandValueX, y);
+                iconButton(g, bandMinus(row), false);
+                iconButton(g, bandPlus(row), true);
+            }
+            const int shiftY = bandRowY(m.limitCount);
+            g.setFont(&fonts::FreeSansBold12pt7b);
+            g.setTextDatum(middle_left);
+            g.setTextColor(kTextDim);
+            g.drawString("SHIFT ALL", kBandLabelX, shiftY);
+            g.setTextDatum(middle_center);
+            iconButton(g, bandMinus(m.limitCount), false);
+            iconButton(g, bandPlus(m.limitCount), true);
+            button(g, kBandsReset, "RESET");
+            button(g, kBandsBack, "BACK");
+            break;
+        }
+
+        case MenuPage::Export:
+            title(g, "EXPORT");
+            g.setFont(&fonts::FreeSans12pt7b);
+            g.setTextColor(kTextDim);
+            g.drawString("COMING SOON", kCenter, kCenter);
+            button(g, kBack, "BACK");
+            break;
+
+        case MenuPage::ConfirmClear: {
+            title(g, "CLEAR HISTORY?");
+            char line[32];
+            snprintf(line, sizeof(line), "%u RESULTS WILL BE",
+                     static_cast<unsigned>(m.historyCount));
+            g.setFont(&fonts::FreeSans12pt7b);
+            g.setTextColor(kText);
+            g.drawString(line, kCenter, kConfirmTextY);
+            g.drawString("DELETED", kCenter, kConfirmTextY + 32);
+            button(g, kConfirmCancel, "CANCEL");
+            button(g, kConfirmClear, "CLEAR", kButtonDanger);
+            break;
+        }
+    }
+    g.setTextDatum(middle_center);
 }
 
 void Renderer::drawHistoryScreen(LovyanGFX& g, const ViewModel& vm) {

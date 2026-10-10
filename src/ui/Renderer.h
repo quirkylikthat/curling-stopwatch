@@ -27,6 +27,7 @@ private:
     void drawSecondary(LovyanGFX& g, const ViewModel& vm);
     void drawHistory(LovyanGFX& g, const ViewModel& vm);        // 3-result row on the timing screen
     void drawHistoryScreen(LovyanGFX& g, const ViewModel& vm);  // full "last 10" screen
+    void drawMenu(LovyanGFX& g, const MenuView& m);             // menu pages
 
     M5Canvas canvas_;
     bool useCanvas_ = false;

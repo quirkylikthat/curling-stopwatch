@@ -18,6 +18,8 @@
 #include "../hal/Settings.h"
 #include "../ui/Renderer.h"
 #include "../ui/ViewModel.h"
+#include "Menu.h"
+#include "UserSettings.h"
 #include "ViewBuilder.h"
 
 namespace curl {
@@ -30,6 +32,10 @@ public:
 
 private:
     void handle(const InputEvent& e, Millis nowMs);
+    void onMenuAction(Menu::Action a, Millis nowMs);
+    void showTiming();  // leave History/Menu (saving any menu edits)
+    void loadUserSettings();
+    void saveUserSettingsIfChanged();
     void onMeasurement(const Measurement& m);
     void selectProfile(uint8_t index);
     void noteActivity(Millis nowMs);
@@ -48,7 +54,15 @@ private:
     History history_;
     uint8_t profileIndex_ = 0;
     bool timedOut_ = false;
-    bool showingHistory_ = false;  // blue double-click toggles the "last 10" screen
+    // Which screen is up. History: blue double-click. Menu: 2 s blue hold.
+    enum class View : uint8_t { Timing, History, Menu };
+    View view_ = View::Timing;
+    Menu menu_;
+
+    // The user's menu settings (persisted in NVS) and the bands built from them.
+    UserSettings user_ = {};
+    settings::SplitBands splitBands_ = {};
+    bool userDirty_ = false;  // changed since last save
 
     ViewModel lastView_ = {};
     bool haveView_ = false;

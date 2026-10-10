@@ -83,7 +83,7 @@ Still ⚠ to confirm on a device (see ARCHITECTURE.md §4):
   - **Audio:** the codec, mic and speaker amplifier are powered via M5IOE1 G3/G10 only when `M5.Speaker` or `M5.Mic` starts.
   - **Radio:** Wi-Fi and BT are never started.
 - **Still running, not yet addressed:**
-  - **Touch:** M5Unified polls the CST820 touch controller over I²C (≥ 4 ms interval).
+  - **Touch:** M5Unified polls the CST820 touch controller over I²C (≥ 4 ms interval). We now use it for the menu (D21): `M5.Touch.getDetail()` gives `wasClicked()` (lifted without dragging), `isPressed()`, and `x`/`y` in screen pixels. It's read in `Hardware::pollTouch()`.
   - **Helper chips:** M5GFX disables the I²C idle sleep of both M5PM1 and M5IOE1 (both are PY32 MCUs).
 - **RTC memory:** `RTC_DATA_ATTR` puts the history snapshot (~1 KB) in RTC slow memory, which deep sleep retains.
 

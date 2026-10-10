@@ -25,6 +25,8 @@ constexpr uint16_t kBattOk = rgb565(60, 200, 90);
 constexpr uint16_t kBattLow = rgb565(255, 70, 50);
 constexpr uint16_t kBattCharging = rgb565(80, 170, 255);
 constexpr uint16_t kTrack = rgb565(35, 35, 35);
+constexpr uint16_t kButton = rgb565(45, 45, 45);         // menu button fill
+constexpr uint16_t kButtonDanger = rgb565(120, 25, 20);  // "CLEAR" confirm
 
 // Geometry. The visible area is a circle; anything near the corners is lost.
 // Width of the visible chord at height y: 2*sqrt(R^2 - (y-C)^2).
