@@ -26,7 +26,13 @@ public:
     uint8_t update(Millis now, bool rawPressed);
     bool isPressed() const { return stable_; }
 
+    // Swallow the current press: no events until the button has been released.
+    // Used when a press only woke the device from sleep (or was held at boot),
+    // so it must not also act as a click.
+    void suppressUntilRelease() { suppress_ = true; }
+
 private:
+    bool suppress_ = false;
     Millis debounceMs_;
     Millis holdMs_;
 

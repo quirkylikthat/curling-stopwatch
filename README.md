@@ -23,6 +23,22 @@ Firmware for the [M5Stack StopWatch](https://docs.m5stack.com/en/core/StopWatch)
 
 Results also go out over USB serial at 115200 baud as `csv,...` lines, for logging.
 
+## Power saving
+
+"Idle" means no button pressed and no timing run in progress.
+
+| Idle for | What happens | To resume |
+|---|---|---|
+| 1 min | Screen dims | Any button. A yellow press still counts as a tap. |
+| 10 min | **Light sleep**: screen off, CPU paused, everything kept in memory | Any button, instant. A yellow press **also starts timing**, as if the screen had been on. |
+| 30 min | **Deep sleep**: nearly everything off | Either button. The device reboots in about 1 s, and **the history is kept**. The press only wakes it. |
+
+All times are in `src/Config.h` (`kDimAfterMs`, `kLightSleepAfterMs`, `kDeepSleepAfterMs`; 0 disables a stage).
+
+- **To switch off completely**, double-press the power button. History is lost.
+- **While sleeping, the USB serial monitor disconnects.** To stop the device sleeping while plugged into USB during development, set `kSleepOnUsbPower = false`.
+- **To try it on the bench**, temporarily set the three times to about 20 s, 40 s and 80 s.
+
 ## Two ways to build
 
 The same folder builds with either tool, and both produce the same firmware from the same sources. Use whichever you like, and switch any time.
@@ -81,7 +97,7 @@ v0.1.0 builds with zero warnings from our code under both toolchains: board pack
 
 ## Unit tests (no device needed)
 
-The timing logic in `src/core/` and the screen logic in `src/app/ViewBuilder.cpp` are plain C++, with 30 tests that run on a PC. Either command runs the same tests:
+The timing logic in `src/core/` and the screen logic in `src/app/ViewBuilder.cpp` are plain C++, with 41 tests that run on a PC. Either command runs the same tests:
 
 ```bash
 pio run -e native -t tests    # PlatformIO

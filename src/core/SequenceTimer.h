@@ -60,6 +60,11 @@ public:
     Measurement takeMeasurement();  // returns it and clears the pending flag
     const Measurement& lastMeasurement() const { return last_; }
 
+    // Sequence numbering survives deep sleep (restored from a snapshot) so the
+    // serial CSV log never repeats a number within a session.
+    uint32_t nextSequence() const { return nextSequence_; }
+    void setNextSequence(uint32_t next) { nextSequence_ = next ? next : 1; }
+
 private:
     void finish(bool complete);
 

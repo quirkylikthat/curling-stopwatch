@@ -32,8 +32,33 @@ public:
     void setBrightness(uint8_t level);
     void beep();
 
+    // --- Power -----------------------------------------------------------
+    bool onUsbPower() const { return usbPower_; }
+    bool wokeFromDeepSleep() const { return wokeFromDeepSleep_; }
+
+    enum class WakeReason : uint8_t { Timer, TimingButton, ControlButton, Other };
+    struct WakeResult {
+        WakeReason reason;
+        Micros wokeAt;  // esp_timer time right after the CPU resumed
+    };
+
+    // Screen off, CPU paused, RAM kept. Returns when a button is pressed or
+    // after maxDurationMs (0 = no timer). The screen stays OFF on return;
+    // call wakeDisplay() unless you're heading straight into deep sleep.
+    WakeResult lightSleep(Millis maxDurationMs);
+    void wakeDisplay();
+
+    // Everything except RTC memory off; either button reboots the device.
+    // Does not return.
+    [[noreturn]] void deepSleep();
+
 private:
     void readBattery();
+    void attachTimingInterrupt();
+    void detachTimingInterrupt();
+
+    bool usbPower_ = false;
+    bool wokeFromDeepSleep_ = false;
 
     ButtonLogic control_;
     ButtonLogic timingPoll_;  // only used when kUseInterruptTiming == false

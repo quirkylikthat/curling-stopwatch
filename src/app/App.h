@@ -11,6 +11,7 @@
 #pragma once
 
 #include "../Config.h"
+#include "../core/PowerPolicy.h"
 #include "../core/SequenceTimer.h"
 #include "../hal/Hardware.h"
 #include "../hal/Haptics.h"
@@ -33,6 +34,8 @@ private:
     void selectProfile(uint8_t index);
     void noteActivity(Millis nowMs);
     void updatePower(Millis nowMs);
+    void enterLightSleep(Millis budgetMs);
+    [[noreturn]] void enterDeepSleep();
     void updateDisplay(Micros now, Millis nowMs);
     const TimingProfile& profile() const { return config::kProfiles[profileIndex_]; }
 

@@ -60,8 +60,16 @@ Still ⚠ to confirm on a device (see ARCHITECTURE.md §4):
 | 425 KB PSRAM canvas allocates and pushes at ≥ 10 fps | `Renderer::begin` | Shrink the canvas to the number area |
 | Layout fits inside the circle | `ui/Theme.h` | Adjust the Y positions / fonts |
 
-## Wake-up sources (for future deep-sleep work)
+## Sleep and wake-up
 
+**What this firmware uses** (see ARCHITECTURE D17):
+- **Light sleep:** `gpio_wakeup_enable()` on G1/G2 (level), plus `esp_sleep_enable_timer_wakeup()`. Our edge interrupt on G2 must be detached first, because GPIO wake reprograms the pin's interrupt type.
+- **Deep sleep:** `esp_sleep_enable_ext1_wakeup_io(G1|G2, ESP_EXT1_WAKEUP_ANY_LOW)`. Both are RTC GPIOs (0–21 on the S3), and the external button pull-ups stay powered. After an EXT1 wake the pins are still in RTC mode, so `rtc_gpio_deinit()` hands them back to normal GPIO.
+- **Display:** `M5.Display.sleep()` / `wakeup()` = brightness 0 + CO5300 sleep-in (0x10) / sleep-out (0x11).
+- **USB power detection:** `M5.Power.getVBUSVoltage()` returns mV from the M5PM1 VIN register, or -1.
+- **RTC memory:** `RTC_DATA_ATTR` puts the history snapshot (~1 KB) in RTC slow memory, which deep sleep retains.
+
+**Other sources** (not used yet):
 - The IMU INT1 and RTC interrupt both go to M5PM1 pin PYG0. M5PM1's IRQ output (PYG1) is wired to **ESP32 GPIO 12**.
 - The M5PM1 library (`M5PM1.h`) offers `timerSet(seconds, action)`, `shutdown()`, `gpioSetWakeEnable()`, and `setLdoEnable()` + `ldoSetPowerHold()` to keep the IMU/RTC powered while asleep.
 - Reference: <https://docs.m5stack.com/en/arduino/stopwatch/m5pm1_m5ioe1>

@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 
+#include "../hal/SleepMemory.h"
+
 namespace curl {
 
 using namespace config;
@@ -13,15 +15,27 @@ void App::begin() {
     settings_.begin();
     renderer_.begin();
     hw_.setBrightness(kBrightnessActive);
-    renderer_.splash(kFirmwareVersion);
+
+    const bool resumed = hw_.wokeFromDeepSleep();
+    if (!resumed) renderer_.splash(kFirmwareVersion);
 
     const uint8_t saved = settings_.profileIndex();
     selectProfile(saved < kProfileCount ? saved : 0);
 
+    if (resumed) {
+        // Woke from deep sleep (= reboot): bring back this session's history.
+        uint32_t next = 1;
+        if (sleepmem::restore(history_, next)) timer_.setNextSequence(next);
+        Serial.printf("[app] resumed from deep sleep, %u results restored\n",
+                      static_cast<unsigned>(history_.size()));
+    } else {
+        sleepmem::discard();  // power-on / reset: never resurrect old history
+    }
+
     Serial.printf("[app] curling timer %s ready, profile=%s\n", kFirmwareVersion, profile().name);
     Serial.println("csv,seq,profile,split_s,hog_to_hog_s,complete");
 
-    delay(800);  // let the splash show; the only blocking delay in the program
+    if (!resumed) delay(800);  // let the splash show; the only blocking delay in the program
     lastActivityMs_ = hw_.nowMillis();
 }
 
@@ -128,16 +142,67 @@ void App::noteActivity(Millis nowMs) {
 }
 
 void App::updatePower(Millis nowMs) {
-    if (timer_.isRunning()) {
-        lastActivityMs_ = nowMs;
-        return;
+    if (timer_.isRunning()) lastActivityMs_ = nowMs;  // never sleep mid-run
+
+    const PowerTimeouts t{kDimAfterMs, kLightSleepAfterMs, kDeepSleepAfterMs};
+    const bool sleepAllowed = kSleepOnUsbPower || !hw_.onUsbPower();
+    const Millis idle = nowMs - lastActivityMs_;
+
+    switch (powerLevelFor(idle, t, sleepAllowed)) {
+        case PowerLevel::Active:
+            break;  // noteActivity() restores brightness
+        case PowerLevel::Dim:
+            if (!dimmed_) {
+                dimmed_ = true;
+                hw_.setBrightness(kBrightnessDim);
+            }
+            break;
+        case PowerLevel::LightSleep:
+            enterLightSleep(lightSleepBudget(idle, t));
+            break;
+        case PowerLevel::DeepSleep:
+            enterDeepSleep();
     }
-    if (!dimmed_ && nowMs - lastActivityMs_ >= kDimAfterMs) {
-        dimmed_ = true;
-        hw_.setBrightness(kBrightnessDim);
+}
+
+void App::enterLightSleep(Millis budgetMs) {
+    haptics_.stop();
+    const Hardware::WakeResult r = hw_.lightSleep(budgetMs);
+
+    switch (r.reason) {
+        case Hardware::WakeReason::Timer:
+            // Still idle when deep sleep came due: go deeper without ever
+            // turning the screen back on.
+            enterDeepSleep();
+
+        case Hardware::WakeReason::Other:
+            // Not a button. Leave the screen off; the next loop() sees we're
+            // still idle and goes straight back to sleep.
+            return;
+
+        case Hardware::WakeReason::TimingButton:
+        case Hardware::WakeReason::ControlButton:
+            break;
     }
-    // TODO(power): after a longer idle period, deep-sleep and wake on a button
-    // via M5PM1 (see docs/HARDWARE.md, "Wake-up sources").
+
+    const Millis nowMs = hw_.nowMillis();
+    hw_.wakeDisplay();
+    dimmed_ = true;  // so noteActivity() restores full brightness
+    noteActivity(nowMs);
+    haveView_ = false;  // force a full redraw
+
+    // Yellow: the stone may already be moving -- the wake press is the first
+    // gate, timestamped ~1 ms after the press. Blue only wakes.
+    if (r.reason == Hardware::WakeReason::TimingButton && kLightSleepWakeTapCounts) {
+        handle({InputType::TimingTap, r.wokeAt}, nowMs);
+    }
+}
+
+void App::enterDeepSleep() {
+    haptics_.stop();
+    sleepmem::save(history_, timer_.nextSequence());
+    Serial.printf("[app] deep sleep, %u results saved\n", static_cast<unsigned>(history_.size()));
+    hw_.deepSleep();
 }
 
 void App::updateDisplay(Micros now, Millis nowMs) {

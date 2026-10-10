@@ -98,9 +98,26 @@ constexpr uint8_t kSpeakerVolume = 96;     // 0-255
 // --- Display / power ----------------------------------------------------------
 constexpr Millis kFrameIntervalMs = 33;          // ~30 fps cap while values change
 constexpr Millis kBatteryPollMs = 5000;
-constexpr uint8_t kBrightnessActive = 200;       // 0-255
+constexpr uint8_t kBrightnessActive = 180;       // 0-255
 constexpr uint8_t kBrightnessDim = 30;
-constexpr Millis kDimAfterMs = 60UL * 1000UL;    // idle time before dimming (AMOLED burn-in + battery)
+
+// --- Power saving -------------------------------------------------------------
+// Idle = no button input and no timing run in progress. Stages (0 = disabled):
+//   dim -> light sleep (screen off, instant resume) -> deep sleep (reboot on wake)
+// For bench testing, try 20 s / 40 s / 80 s here.
+constexpr Millis kDimAfterMs = 60UL * 1000UL;           // 1 min
+constexpr Millis kLightSleepAfterMs = 10UL * 60UL * 1000UL;  // 10 min
+constexpr Millis kDeepSleepAfterMs = 30UL * 60UL * 1000UL;   // 30 min
+
+// Yellow press that wakes from LIGHT sleep also counts as a timing tap (wake-up
+// takes ~1 ms, so the split is still accurate). After DEEP sleep the device has
+// to reboot (~1 s), so that press only wakes it.
+constexpr bool kLightSleepWakeTapCounts = true;
+
+// false = never sleep while USB power is present (handy while developing:
+// sleeping drops the serial monitor). Dimming still happens.
+constexpr bool kSleepOnUsbPower = true;
+constexpr int kUsbPresentMillivolts = 4000;     // VBUS above this = on USB power
 
 }  // namespace config
 }  // namespace curl

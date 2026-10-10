@@ -75,7 +75,7 @@ Nothing blocks. The only `delay()` is the 800 ms splash at boot.
 ### D2 — Pure "core" layer, unit-tested on the PC
 **Choice:** the timing state machine, debounce logic, band classification, formatting and screen-content logic have no Arduino or M5 includes. Time is always passed in as a parameter; core never reads a clock.
 **Why:**
-- Timing correctness is the product. A 30-test suite runs in under a second on a laptop (`make -C test`), with no flashing and no device.
+- Timing correctness is the product. A 41-test suite runs in under a second on a laptop (`make -C test`), with no flashing and no device.
 - M5Unified has broken APIs on this board before (0.2.21 changed the IO-expander API). Keeping device calls in `hal/` and `ui/` contains that churn.
 - Fake timestamps make edge cases trivial to test: bounce, timeouts, `millis()` wrap, ISR-vs-loop clock skew.
 
@@ -151,6 +151,34 @@ Black background (black pixels are off, which saves battery), dim colours for st
 **Verified (Oct 2026):** both toolchains build with zero warnings from our code, and the native tests pass. The flash size differs slightly (IDE 602 KB, PlatformIO 644 KB) because of link details in the two platform packages. It is not a code difference.
 **Revisit if:** we need ESP-IDF settings that Arduino's prebuilt core fixes. pioarduino can also build with `framework = arduino, espidf` and a custom `sdkconfig`, so that path stays open without changing tools again.
 
+### D17 — Three-stage power saving: dim → light sleep → deep sleep
+**Choice:** idle (no button, no run in progress) for 1 min dims the screen, 10 min enters ESP32 **light sleep**, and 30 min enters ESP32 **deep sleep**. The pure `PowerPolicy` decides the stage, the `App` acts on it, and the `Hardware` class does the chip work.
+
+**Light sleep:**
+- *What sleeps:* CPU paused, RAM and PSRAM kept, AMOLED in panel sleep-in.
+- *How it wakes:* GPIO level wake on either button, plus a timer set to fire when deep sleep is due.
+- *What a wake press does:* yellow resumes in about 1 ms and **counts as the first gate**. Blue only wakes.
+- *State kept:* everything, because execution simply continues.
+
+**Deep sleep:**
+- *What sleeps:* everything except the RTC domain. The AMOLED is put to sleep first.
+- *How it wakes:* EXT1 "any low" on G1/G2. Both are RTC-capable pins with external pull-ups.
+- *What a wake press does:* only wakes the device, which reboots in about 1 s.
+- *State kept:* history and the sequence counter go in RTC memory. The mode is already saved in NVS.
+
+**Why:**
+- **Light sleep first.** It resumes instantly, so you can't miss a stone after a long gap. Deep sleep saves more but needs a reboot. Two stages get most of the battery benefit without hurting the "pick it up and time" experience.
+- **The yellow wake press counts as a tap.** Otherwise your *next* tap, at the hog line, would *start* a run instead of ending one, which gives a bogus or timed-out split. The wake timestamp is late by the wake-up latency (about 1 ms, well under human error).
+- **Deep sleep is reached through a timer wake from light sleep.** It happens without ever lighting the screen, because the CPU can't count idle time while paused.
+- **History survives deep sleep but not power-off.** A checksummed snapshot is packed into an RTC-memory byte array just before sleeping, and restored once after an EXT1 wake. Every other kind of boot discards it, so a reset never resurrects old data. The pack/unpack logic is pure and unit-tested.
+- **The wake press never also acts.** `ButtonLogic::suppressUntilRelease()` swallows the blue press that woke the device, or a button held during boot, so it doesn't change the mode.
+- **The timing interrupt is detached during light sleep.** GPIO wake reprograms the pin to level-triggered, which would fight the edge interrupt. It's re-attached on wake.
+
+**Not done (yet):**
+- Cutting the L3B rail (display, audio, motor) or touch power during deep sleep. M5Unified's own `deepSleep()` doesn't do this either, and the pin docs disagree on which IO-expander pin is which.
+- Using the M5PM1's true power-off. That draws less, but only the power button can wake it.
+- Measuring the current in each state. All three are worth doing once there's a meter on the bench.
+
 ## 3. How to extend
 
 | You want to… | Do this |
@@ -161,7 +189,7 @@ Black background (black pixels are off, which saves battery), dim colours for st
 | Add touch gestures (e.g. swipe for history) | Add an `InputType`. Produce it in `Hardware::update()` from `M5.Touch.getDetail()`. Handle it in `App::handle()`. |
 | Add a non-tap feature (game / thinking clock) | **This is the moment to add a `Mode` interface** (`onEvent`, `tick`, `buildView`), with `App` holding a list of modes. One mode doesn't justify the abstraction; two very different ones do. |
 | Save history across power cycles | New `hal/Storage` (NVS or LittleFS). App pushes to it in `onMeasurement()`. |
-| Deep sleep | Use M5PM1 wake-on-button. See `HARDWARE.md`. |
+| Change sleep timing / behaviour | `Config.h` power section. The policy is in `core/PowerPolicy`, and the chip work in `Hardware::lightSleep()` / `deepSleep()`. |
 
 ## 4. First-flash validation checklist
 
@@ -173,6 +201,13 @@ The pins and polarity were confirmed from the M5Unified source. These can only b
 4. **Canvas.** There should be no `[ui] canvas alloc failed` message, and no visible flicker.
 5. **Accuracy sanity check.** Time about 10 s against a phone stopwatch using taps.
 6. **Battery arc.** It should show at the top, and turn blue while charging.
+7. **Sleep.** Set the power times in `Config.h` to 20 s / 40 s / 80 s for this test, then:
+   - Leave the device idle. It should dim, then the screen should go off: serial shows `[power] light sleep`.
+   - Press **blue**. It should wake instantly without changing mode.
+   - Let it light-sleep again, then tap **yellow**, then tap again about 4 s later. That should give a normal split.
+   - Leave it idle past 80 s. Serial shows `[app] deep sleep, N results saved`.
+   - Press either button. It should reboot without the splash, and the history row should still show your results.
+   - Put the times back afterwards.
 
 ## 5. Roadmap ideas (to discuss)
 
@@ -182,4 +217,4 @@ The pins and polarity were confirmed from the M5Unified source. These can only b
 - **Game / thinking clock** per team, with timeouts.
 - **Tagging shots** by player, end or shot type using touch. A history screen.
 - **Export** over Wi-Fi or BLE to a phone or spreadsheet.
-- **Deep sleep** and wake on button via M5PM1.
+- **Measure sleep current** and decide whether to cut the L3B rail, or use M5PM1 power-off, after a longer idle period.
