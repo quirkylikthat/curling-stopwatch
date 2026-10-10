@@ -90,7 +90,10 @@ constexpr int kBandPlusX = kCenter + 142;
 constexpr int kBandScrollbarX = kCenter + 182;
 // Rows: one per band limit (bands - 1) + SHIFT ALL = number of bands.
 constexpr size_t kBandRows = sizeof(config::kSplitBands) / sizeof(config::kSplitBands[0]);
-constexpr int kBandContentH = static_cast<int>(kBandRows) * kBandRowPitch;
+// Blank space after the last row, so when scrolled to the bottom SHIFT ALL
+// sits well clear of the RESET / BACK footer (it was too easy to hit BACK).
+constexpr int kBandListEndPad = 44;
+constexpr int kBandContentH = static_cast<int>(kBandRows) * kBandRowPitch + kBandListEndPad;
 constexpr int kBandViewH = kBandViewBottom - kBandViewTop;
 constexpr int kBandMaxScroll = kBandContentH > kBandViewH ? kBandContentH - kBandViewH : 0;
 
@@ -107,9 +110,11 @@ constexpr bool inBandView(int y) { return y >= kBandViewTop && y < kBandViewBott
 
 constexpr Rect kBandsReset = {kCenter - 75, 388, 130, 50};
 constexpr Rect kBandsBack = {kCenter + 75, 388, 130, 50};
-// Footer hit zones: each half of the screen below the list, to the edge.
-constexpr Rect kBandsResetHit = {kCenter - 76, 405, 150, 122};  // y 344..466
-constexpr Rect kBandsBackHit = {kCenter + 76, 405, 150, 122};
+// Footer hit zones: each half of the screen below the list, to the edge,
+// starting kBandFooterGap below the list so the two never touch.
+constexpr int kBandFooterGap = 14;
+constexpr Rect kBandsResetHit = {kCenter - 76, 412, 150, 108};  // y 358..466
+constexpr Rect kBandsBackHit = {kCenter + 76, 412, 150, 108};
 
 // Confirm "clear history".
 constexpr int kConfirmTextY = 190;

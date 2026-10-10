@@ -77,7 +77,7 @@ Nothing blocks. The only `delay()` is the 800 ms splash at boot.
 ### D2 — Pure "core" layer, unit-tested on the PC
 **Choice:** the timing state machine, debounce logic, band classification, formatting and screen-content logic have no Arduino or M5 includes. Time is always passed in as a parameter; core never reads a clock.
 **Why:**
-- Timing correctness is the product. A 72-test suite runs in under a second on a laptop (`make -C test`), with no flashing and no device.
+- Timing correctness is the product. A 73-test suite runs in under a second on a laptop (`make -C test`), with no flashing and no device.
 - M5Unified has broken APIs on this board before (0.2.21 changed the IO-expander API). Keeping device calls in `hal/` and `ui/` contains that churn.
 - Fake timestamps make edge cases trivial to test: bounce, timeouts, `millis()` wrap, ISR-vs-loop clock skew.
 
@@ -283,6 +283,8 @@ Navigation:
   - There's a scrollbar on the right. Re-entering the page starts at the top.
   - Tests check, at every scroll position, that each button's visible part fits the circle, and that a button scrolled under the header can't be hit.
 - **Diagnostics:** every menu tap is logged as `[menu] tap x,y`. `kTouchOffsetX/Y` in `Config.h` can correct a consistent offset if one shows up.
+
+**Follow-up (on device):** at the bottom of the list, SHIFT ALL was too easy to miss into BACK. The list now ends with `kBandListEndPad` (44 px) of blank space, and the footer hit zones start `kBandFooterGap` (14 px) below the list. At full scroll that leaves about 60 px between SHIFT ALL and BACK, where it used to be about 4 px. A test enforces at least 50 px.
 
 **Revisit if:** taps still miss. Read the `[menu] tap` lines against the button positions in `ui/MenuLayout.h`; a steady offset means set `kTouchOffsetX/Y`, scattered taps mean widen the padding.
 

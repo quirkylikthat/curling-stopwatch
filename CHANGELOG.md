@@ -36,6 +36,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 ### Fixed
 - **Menu BACK taps often didn't register.** Taps now use our own detection, with a 20 px wobble allowed and the tap placed where the finger landed. Hit zones are padded, and BACK accepts taps down to the screen edge. (D22)
 - **Split-bands page was cramped.** It now has a scrolling list with larger 64×50 px −/+ buttons and a fixed header and footer. (D22)
+- **SHIFT ALL was easy to miss into BACK** at the bottom of the list. There's now blank space after the last row and a dead gap above the footer, about 60 px clear in total. (D22)
 - **Timing screen spacing:** the weight label ("DRAW") was touching the big number. It and the SPLIT+H2H secondary line are now spaced evenly between the big number and the history row, using measured font ink extents (`ui/Layout.h`, `scripts/fontmetrics.py`).
 
 ## [0.1.0] - 2026-10-09

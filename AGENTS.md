@@ -71,7 +71,7 @@ A change is done when **all** of these are true:
 - [ ] **Pure logic has unit tests** in `test/`. Each test is a `TEST(name)` in a `test_*.cpp` file, picked up automatically.
 - [ ] **`scripts/verify.sh` passes:**
   - formatting
-  - 72+ unit tests
+  - 73+ unit tests
   - PlatformIO build with `-Werror` on our sources
   - Arduino CLI build with no warnings in our sources
   - On Windows without bash, run `scripts\verify.ps1`; CI runs the full gate.

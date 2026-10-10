@@ -212,6 +212,29 @@ TEST(menu_band_list_scrolling) {
     CHECK_EQ(m.bandsScroll(), 0);
 }
 
+TEST(menu_band_list_end_is_clear_of_the_footer) {
+    // Mike, on the device: at the bottom of the list, SHIFT ALL was too easy to
+    // miss into BACK. There must be clear space between them.
+    const Rect shiftPlus = bandPlus(kBandRows - 1, kBandMaxScroll);
+    const int shiftBottom = shiftPlus.top() + shiftPlus.h + kBandBtnPad;
+    CHECK(kBandsBackHit.top() - shiftBottom >= 50);
+    CHECK(kBandsBackHit.top() >= kBandViewBottom + kBandFooterGap);
+    CHECK(kBandsResetHit.top() == kBandsBackHit.top());
+    CHECK(kBandsBackHit.top() <= kBandsBack.top());  // still covers the drawn button
+
+    Menu m;
+    UserSettings s = def();
+    openBands(m, s);
+    scrollBy(m, s, 1000);
+    CHECK_EQ(m.bandsScroll(), kBandMaxScroll);
+    // A tap a little below SHIFT ALL lands in blank space: nothing happens.
+    CHECK(m.tap(shiftPlus.cx, shiftBottom + 10, s) == Menu::Action::None);
+    CHECK(m.page() == Menu::Page::Bands);
+    // And the gap between the list and the footer is dead too.
+    CHECK(m.tap(kBandsBack.cx, kBandViewBottom + kBandFooterGap / 2, s) == Menu::Action::None);
+    CHECK(m.page() == Menu::Page::Bands);
+}
+
 TEST(menu_back_hit_zone_is_forgiving) {
     Menu m;
     UserSettings s = def();
