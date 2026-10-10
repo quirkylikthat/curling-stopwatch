@@ -12,6 +12,7 @@ test/build/
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+pio-build.log
 
 # Arduino IDE / CLI
 .arduino/
