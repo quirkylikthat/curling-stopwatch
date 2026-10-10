@@ -66,9 +66,10 @@ struct Measurement {
 
 // Hardware-independent input events. The HAL translates buttons/touch into these.
 enum class InputType : uint8_t {
-    TimingTap,     // yellow button: precise timestamp captured in an ISR
-    ControlClick,  // blue button short press
-    ControlHold,   // blue button long press
+    TimingTap,           // yellow button: precise timestamp captured in an ISR
+    ControlClick,        // blue button short press
+    ControlHold,         // blue button long press
+    ControlDoubleClick,  // blue button double press (toggles the history screen)
 };
 
 struct InputEvent {

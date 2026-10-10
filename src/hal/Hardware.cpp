@@ -34,7 +34,7 @@ constexpr gpio_num_t kControlGpio = static_cast<gpio_num_t>(config::kPinControlB
 }  // namespace
 
 Hardware::Hardware()
-    : control_(config::kControlDebounceMs, config::kControlHoldMs),
+    : control_(config::kControlDebounceMs, config::kControlHoldMs, config::kControlDoubleClickMs),
       timingPoll_(config::kControlDebounceMs, config::kControlHoldMs) {}
 
 bool Hardware::begin() {
@@ -92,6 +92,7 @@ void Hardware::update() {
     const uint8_t c = control_.update(nowMs, readPressed(config::kPinControlButton));
     if (c & ButtonLogic::Click) fifo_.push({InputType::ControlClick, nowMicros()});
     if (c & ButtonLogic::Hold) fifo_.push({InputType::ControlHold, nowMicros()});
+    if (c & ButtonLogic::DoubleClick) fifo_.push({InputType::ControlDoubleClick, nowMicros()});
 
     if (!config::kUseInterruptTiming) {
         const uint8_t t = timingPoll_.update(nowMs, readPressed(config::kPinTimingButton));

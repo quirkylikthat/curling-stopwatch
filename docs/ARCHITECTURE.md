@@ -77,7 +77,7 @@ Nothing blocks. The only `delay()` is the 800 ms splash at boot.
 ### D2 — Pure "core" layer, unit-tested on the PC
 **Choice:** the timing state machine, debounce logic, band classification, formatting and screen-content logic have no Arduino or M5 includes. Time is always passed in as a parameter; core never reads a clock.
 **Why:**
-- Timing correctness is the product. A 41-test suite runs in under a second on a laptop (`make -C test`), with no flashing and no device.
+- Timing correctness is the product. A 52-test suite runs in under a second on a laptop (`make -C test`), with no flashing and no device.
 - M5Unified has broken APIs on this board before (0.2.21 changed the IO-expander API). Keeping device calls in `hal/` and `ui/` contains that churn.
 - Fake timestamps make edge cases trivial to test: bounce, timeouts, `millis()` wrap, ISR-vs-loop clock skew.
 
@@ -191,6 +191,26 @@ Black background (black pixels are off, which saves battery), dim colours for st
 It costs no CPU, because the M5PM1 holds the LED state while the ESP32 sleeps.
 **Revisit if:** the LED draws more in deep sleep than it's worth once sleep current is measured. In that case, blink it from a periodic light-sleep wake, or drop it.
 
+### D19 — History screen on a blue double-click
+**Choice:** a second screen lists the last 10 throws (`kHistoryScreenRows`), newest first.
+- **Columns:** split on the left, coloured by weight band; hog-to-hog on the right.
+- **A throw is one `Measurement`.** A SPLIT+H2H throw puts both values on the same row, and a single-interval throw shows `-` in the other column.
+- **The `#n` is the sequence number,** so rows match the serial CSV.
+
+Navigation:
+- **Blue double-click** toggles the screen.
+- **Blue click** on the history screen means *back*. It does not also change the mode.
+- **Yellow** jumps back *and* is processed as a timing tap.
+- **Light sleep** always wakes to the timing screen.
+
+**Why:**
+- **Buttons, not touch.** Capacitive touch doesn't work through curling gloves. The cost of a double-click is that every single blue click is delayed by the double-click window (350 ms), because `ButtonLogic` waits to rule out a second press. A blue hold was already taken (clear history).
+- **Yellow never gets swallowed.** That follows invariant 7, and a stone may be moving when you glance at the history.
+- **Same `ViewModel`/`Renderer` path, with a `Screen::History` case.** One dirty-check and one canvas push serve both screens. The history view doesn't depend on the live timer, so a run in progress causes no redraws while you're on it.
+- **Rows come straight from the 32-entry RAM history,** which is restored after deep sleep. No new storage was needed.
+
+**Revisit if:** Mike wants more than 10 rows. That needs scrolling (a yellow/blue page action), or a smaller font at the cost of readability. Also revisit if the single-click delay feels sluggish on the ice; shortening `kControlDoubleClickMs` makes the double-click harder to hit.
+
 ## 3. How to extend
 
 | You want to… | Do this |
@@ -198,7 +218,8 @@ It costs no CPU, because the M5PM1 holds the LED state while the ESP32 sleeps.
 | Add a tap-sequence mode (e.g. tee-to-hog) | Add a row to `kProfiles` in `Config.h`. Add a test. |
 | Add a new kind of interval | Add to `IntervalKind`, then to `intervalName()` and `bandFor()` in `ViewBuilder.cpp`. |
 | Tune what counts as DRAW, etc. | Edit `kSplitBands` / `kHogToHogBands`. |
-| Add touch gestures (e.g. swipe for history) | Add an `InputType`. Produce it in `Hardware::update()` from `M5.Touch.getDetail()`. Handle it in `App::handle()`. |
+| Add another screen | Add a `ViewModel::Screen` value. Have `ViewBuilder` fill it, with a unit test. Add a `Renderer` draw function. Add an `App` flag/state and the navigation in `App::handle()`. Copy the history screen (D19). |
+| Add touch gestures | Add an `InputType`. Produce it in `Hardware::update()` from `M5.Touch.getDetail()`. Handle it in `App::handle()`. |
 | Add a non-tap feature (game / thinking clock) | **This is the moment to add a `Mode` interface** (`onEvent`, `tick`, `buildView`), with `App` holding a list of modes. One mode doesn't justify the abstraction; two very different ones do. |
 | Save history across power cycles | New `hal/Storage` (NVS or LittleFS). App pushes to it in `onMeasurement()`. |
 | Change sleep timing / behaviour | `Config.h` power section. The policy is in `core/PowerPolicy`, and the chip work in `Hardware::lightSleep()` / `deepSleep()`. |
@@ -221,6 +242,12 @@ The pins and polarity were confirmed from the M5Unified source. These can only b
    - Press either button. It should reboot without the splash, and the history row should still show your results.
    - Put the times back afterwards.
 8. **Status LED.** It should be off while the screen is on, and green during light sleep and deep sleep. After waking, it should go off again. After a double-press power-off, it should be dark.
+9. **History screen.** Time a few throws in each mode, including one SPLIT+H2H. Then:
+   - **Double-click blue.** The history screen should show the throws newest first. The SPLIT+H2H throw should have both values on one row, and the others should show `-`.
+   - **Check the edges.** All 10 rows and the footer should sit fully inside the round screen.
+   - **Single-click blue.** It should go back without changing the mode.
+   - **Re-open the history screen and tap yellow.** It should jump back with the timer running. Tap again for a normal result.
+   - **Single click on the timing screen.** It should still change mode, about 0.35 s after release.
 
 ## 5. Roadmap ideas (to discuss)
 

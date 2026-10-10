@@ -37,6 +37,43 @@ void fillHistory(ViewModel& out, const History& history, size_t skip) {
     }
 }
 
+static_assert(config::kHistoryScreenRows <= ViewModel::kMaxHistoryRows,
+              "kHistoryScreenRows exceeds ViewModel::kMaxHistoryRows");
+static_assert(config::kHistoryScreenRows <= config::kHistorySize,
+              "kHistoryScreenRows exceeds the history kept in RAM");
+
+// History screen: one row per throw, split on the left, hog-to-hog on the
+// right -- on the same row when both were timed on that throw (SPLIT+H2H).
+void fillHistoryScreen(ViewModel& out, const History& history) {
+    out.screen = ViewModel::Screen::History;
+    char title[sizeof(out.modeName)];
+    snprintf(title, sizeof(title), "LAST %u", static_cast<unsigned>(config::kHistoryScreenRows));
+    copyText(out.modeName, title);
+
+    for (size_t i = 0; i < history.size() && out.rowCount < config::kHistoryScreenRows; ++i) {
+        const Measurement& m = history[i];
+        if (m.intervalCount == 0) continue;
+        HistoryRow& row = out.rows[out.rowCount++];
+        snprintf(row.number, sizeof(row.number), "#%lu", static_cast<unsigned long>(m.sequence));
+
+        const int s = m.find(IntervalKind::Split);
+        if (s >= 0) {
+            formatSeconds(m.durations[s], 2, row.split, sizeof(row.split));
+            const Band* b = bandFor(IntervalKind::Split, m.seconds(static_cast<uint8_t>(s)));
+            row.splitColor = b ? b->color : 0;
+        } else {
+            copyText(row.split, "-");
+        }
+
+        const int h = m.find(IntervalKind::HogToHog);
+        if (h >= 0) {
+            formatSeconds(m.durations[h], 2, row.hogToHog, sizeof(row.hogToHog));
+        } else {
+            copyText(row.hogToHog, "-");
+        }
+    }
+}
+
 }  // namespace
 
 const char* intervalName(IntervalKind kind) {
@@ -69,6 +106,12 @@ void buildView(const ViewInputs& in, ViewModel& out) {
     out.gateCount = p.gateCount;
     out.batteryPercent = in.batteryPercent;
     out.charging = in.charging;
+
+    if (in.showHistory) {
+        out.gateCount = 0;  // no progress dots on the history screen
+        fillHistoryScreen(out, in.history);
+        return;
+    }
 
     switch (in.timer.state()) {
         case SequenceTimer::State::Running: {

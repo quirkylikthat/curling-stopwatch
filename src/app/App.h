@@ -48,6 +48,7 @@ private:
     History history_;
     uint8_t profileIndex_ = 0;
     bool timedOut_ = false;
+    bool showingHistory_ = false;  // blue double-click toggles the "last 10" screen
 
     ViewModel lastView_ = {};
     bool haveView_ = false;

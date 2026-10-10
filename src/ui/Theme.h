@@ -46,5 +46,15 @@ constexpr int kHistoryY = 392;    // previous results
 
 constexpr float kMainTextSize = 2.3f;  // Font7 (7-segment) is 48 px tall at size 1
 
+// History screen (title uses kModeY). Rows run y = 136..379; the visible chord
+// is >= 360 px wide there, so three columns fit with margin.
+constexpr int kHistHeaderY = 104;
+constexpr int kHistFirstRowY = 136;
+constexpr int kHistRowStep = 27;
+constexpr int kHistNumberX = kCenter - 100;  // right edge of "#12"
+constexpr int kHistSplitX = kCenter - 35;    // column centres
+constexpr int kHistHogX = kCenter + 75;
+constexpr int kHistFooterY = 412;
+
 }  // namespace theme
 }  // namespace curl

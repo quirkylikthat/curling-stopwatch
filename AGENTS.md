@@ -15,7 +15,7 @@ The owner is **Mike**. He rates his C++ as "some experience". He wants design de
 
 | File | Why |
 |---|---|
-| `docs/ARCHITECTURE.md` | Layers, main loop, **decision log D1–D18**. Don't contradict a decision without adding a new one that supersedes it. |
+| `docs/ARCHITECTURE.md` | Layers, main loop, **decision log D1–D19**. Don't contradict a decision without adding a new one that supersedes it. |
 | `docs/HARDWARE.md` | Pins, M5Unified API facts, sleep and wake details. Some items are verified from library source and some aren't; it says which. |
 | `docs/STATUS.md` | What's verified **on the device** versus only compiled or unit-tested. |
 | `src/Config.h` | Every tunable. |
@@ -64,7 +64,7 @@ A change is done when **all** of these are true:
 - [ ] **Pure logic has unit tests** in `test/`. Each test is a `TEST(name)` in a `test_*.cpp` file, picked up automatically.
 - [ ] **`scripts/verify.sh` passes:**
   - formatting
-  - 41+ unit tests
+  - 52+ unit tests
   - PlatformIO build with `-Werror` on our sources
   - Arduino CLI build with no warnings in our sources
   - On Windows without bash, run `scripts\verify.ps1`; CI runs the full gate.

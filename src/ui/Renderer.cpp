@@ -56,6 +56,13 @@ void Renderer::render(const ViewModel& vm) {
     g.setTextColor(kTextDim);
     g.drawString(vm.modeName, kCenter, kModeY);
 
+    if (vm.screen == ViewModel::Screen::History) {
+        drawHistoryScreen(g, vm);
+        g.endWrite();
+        present();
+        return;
+    }
+
     drawDots(g, vm);
 
     // Hint line doubles as the caption for the main readout when there is no hint.
@@ -140,6 +147,42 @@ void Renderer::drawHistory(LovyanGFX& g, const ViewModel& vm) {
     g.setFont(&fonts::FreeSans12pt7b);
     g.setTextColor(kTextDim);
     g.drawString(line, kCenter, kHistoryY);
+}
+
+void Renderer::drawHistoryScreen(LovyanGFX& g, const ViewModel& vm) {
+    g.setFont(&fonts::FreeSans9pt7b);
+    g.setTextColor(kTextDim);
+    g.setTextDatum(middle_center);
+    g.drawString("SPLIT", kHistSplitX, kHistHeaderY);
+    g.drawString("HOG-HOG", kHistHogX, kHistHeaderY);
+    g.drawFastHLine(kCenter - 150, kHistHeaderY + 14, 300, kTrack);
+
+    if (vm.rowCount == 0) {
+        g.setFont(&fonts::FreeSans12pt7b);
+        g.drawString("NO THROWS YET", kCenter, kCenter);
+    }
+
+    for (uint8_t i = 0; i < vm.rowCount; ++i) {
+        const HistoryRow& r = vm.rows[i];
+        const int y = kHistFirstRowY + i * kHistRowStep;
+
+        g.setFont(&fonts::FreeSans9pt7b);
+        g.setTextColor(kTextFaint);
+        g.setTextDatum(middle_right);
+        g.drawString(r.number, kHistNumberX, y);
+
+        g.setFont(&fonts::FreeSansBold12pt7b);
+        g.setTextDatum(middle_center);
+        g.setTextColor(r.splitColor ? r.splitColor : kTextFaint);
+        g.drawString(r.split, kHistSplitX, y);
+        g.setTextColor(r.hogToHog[0] == '-' ? kTextFaint : kText);
+        g.drawString(r.hogToHog, kHistHogX, y);
+    }
+
+    g.setFont(&fonts::FreeSans9pt7b);
+    g.setTextColor(kTextFaint);
+    g.setTextDatum(middle_center);
+    g.drawString("BLUE: BACK", kCenter, kHistFooterY);
 }
 
 }  // namespace curl

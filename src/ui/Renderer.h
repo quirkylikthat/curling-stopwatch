@@ -25,7 +25,8 @@ private:
     void drawDots(LovyanGFX& g, const ViewModel& vm);
     void drawMain(LovyanGFX& g, const ViewModel& vm);
     void drawSecondary(LovyanGFX& g, const ViewModel& vm);
-    void drawHistory(LovyanGFX& g, const ViewModel& vm);
+    void drawHistory(LovyanGFX& g, const ViewModel& vm);        // 3-result row on the timing screen
+    void drawHistoryScreen(LovyanGFX& g, const ViewModel& vm);  // full "last 10" screen
 
     M5Canvas canvas_;
     bool useCanvas_ = false;

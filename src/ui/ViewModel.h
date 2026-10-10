@@ -18,8 +18,17 @@ struct Readout {
     uint16_t bandColor;
 };
 
+// One line of the history screen = one throw (one Measurement).
+struct HistoryRow {
+    char number[12];      // "#12" (measurement sequence number, matches the serial CSV)
+    char split[8];        // "3.82", or "-" if this throw had no split
+    uint16_t splitColor;  // weight-band colour; 0 = no split
+    char hogToHog[8];     // "14.31", or "-"
+};
+
 struct ViewModel {
-    enum class Screen : uint8_t { Ready, Running, Result };
+    enum class Screen : uint8_t { Ready, Running, Result, History };
+    static constexpr uint8_t kMaxHistoryRows = 10;
 
     Screen screen;
     char modeName[16];  // "SPLIT", "HOG-HOG", ...
@@ -33,6 +42,10 @@ struct ViewModel {
 
     uint8_t historyCount;
     char history[3][12];  // previous results (headline value only)
+
+    // Screen::History only: newest first.
+    uint8_t rowCount;
+    HistoryRow rows[kMaxHistoryRows];
 
     int8_t batteryPercent;  // -1 = unknown
     bool charging;

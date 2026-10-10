@@ -36,7 +36,10 @@ constexpr bool kUseInterruptTiming = true;
 
 // --- Input timing -----------------------------------------------------------
 constexpr Millis kControlDebounceMs = 25;
-constexpr Millis kControlHoldMs = 800;          // blue long-press threshold
+constexpr Millis kControlHoldMs = 800;  // blue long-press threshold
+// Blue double-click window. A single click is only acted on once this has
+// passed without a second press, so mode change / cancel react ~0.35 s later.
+constexpr Millis kControlDoubleClickMs = 350;
 constexpr Micros kTimingIsrLockoutUs = 150000;  // ignore edges for 150 ms after a press (bounce)
 constexpr Micros kMinTapGapUs = 400000;         // ignore any tap < 0.4 s after the previous one
 
@@ -83,8 +86,9 @@ constexpr Band kHogToHogBands[] = {
 };
 
 // --- History ------------------------------------------------------------------
-constexpr uint8_t kHistorySize = 32;  // measurements kept in RAM
-constexpr uint8_t kHistoryShown = 3;  // previous results shown under the main time
+constexpr uint8_t kHistorySize = 32;        // measurements kept in RAM
+constexpr uint8_t kHistoryShown = 3;        // previous results shown under the main time
+constexpr uint8_t kHistoryScreenRows = 10;  // throws on the history screen (blue double-click)
 
 // --- Feedback -----------------------------------------------------------------
 // You are watching the stone, not the screen, so every accepted tap buzzes.

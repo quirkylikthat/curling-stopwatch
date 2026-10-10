@@ -16,10 +16,18 @@ Firmware for the [M5Stack StopWatch](https://docs.m5stack.com/en/core/StopWatch)
 
 | Input | Action |
 |---|---|
-| Yellow, tap | Start, then stop, at each line. Every accepted tap buzzes. |
-| Blue, click | While timing: cancel (false start). Otherwise: next mode. |
+| Yellow, tap | Start, then stop, at each line. Every accepted tap buzzes. On the history screen, it jumps back **and** starts timing. |
+| Blue, click | While timing: cancel (false start). On the history screen: back. Otherwise: next mode. Reacts about 0.35 s after release, because it waits to rule out a double-click. |
+| Blue, double-click | Open or close the **history screen** |
 | Blue, hold (0.8 s) | Clear history |
 | Power, click / double-click | Reset / power off (hardware) |
+
+**History screen:** the last 10 throws, newest at the top.
+- **Split** is in the left column, coloured by weight band.
+- **Hog-to-hog** is in the right column.
+- **A throw timed in SPLIT+H2H mode** shows both values on one row.
+- **A throw that only has one of the two** shows `-` in the other column.
+- **The small `#n`** is the throw's sequence number, which matches the serial log.
 
 Results also go out over USB serial at 115200 baud as `csv,...` lines, for logging.
 
@@ -99,7 +107,7 @@ v0.1.0 builds with zero warnings from our code under both toolchains: board pack
 
 ## Unit tests (no device needed)
 
-The timing logic in `src/core/` and the screen logic in `src/app/ViewBuilder.cpp` are plain C++, with 41 tests that run on a PC. Either command runs the same tests:
+The timing logic in `src/core/` and the screen logic in `src/app/ViewBuilder.cpp` are plain C++, with 52 tests that run on a PC. Either command runs the same tests:
 
 ```bash
 pio run -e native -t tests    # PlatformIO

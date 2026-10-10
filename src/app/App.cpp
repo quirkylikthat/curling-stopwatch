@@ -73,6 +73,8 @@ void App::handle(const InputEvent& e, Millis nowMs) {
 
     switch (e.type) {
         case InputType::TimingTap:
+            // From the history screen: jump back AND time -- the tap is never lost.
+            showingHistory_ = false;
             switch (timer_.onTap(e.timestamp)) {
                 case SequenceTimer::TapResult::Started:
                     timedOut_ = false;
@@ -93,7 +95,10 @@ void App::handle(const InputEvent& e, Millis nowMs) {
             break;
 
         case InputType::ControlClick:
-            if (timer_.isRunning()) {
+            if (showingHistory_) {
+                showingHistory_ = false;  // "back" -- doesn't also change mode
+                haptics_.tap(nowMs);
+            } else if (timer_.isRunning()) {
                 timer_.cancel();  // false start: abandon this run
                 haptics_.cancel(nowMs);
             } else {
@@ -108,6 +113,11 @@ void App::handle(const InputEvent& e, Millis nowMs) {
             timedOut_ = false;
             haptics_.cancel(nowMs);
             Serial.println("[app] history cleared");
+            break;
+
+        case InputType::ControlDoubleClick:
+            showingHistory_ = !showingHistory_;
+            haptics_.tap(nowMs);
             break;
     }
 }
@@ -167,6 +177,7 @@ void App::updatePower(Millis nowMs) {
 
 void App::enterLightSleep(Millis budgetMs) {
     haptics_.stop();
+    showingHistory_ = false;  // always wake up on the timing screen
     const Hardware::WakeResult r = hw_.lightSleep(budgetMs);
 
     switch (r.reason) {
@@ -210,7 +221,8 @@ void App::updateDisplay(Micros now, Millis nowMs) {
     lastFrameMs_ = nowMs;
 
     ViewModel vm;
-    buildView({timer_, profile(), history_, now, hw_.batteryPercent(), hw_.isCharging(), timedOut_},
+    buildView({timer_, profile(), history_, now, hw_.batteryPercent(), hw_.isCharging(), timedOut_,
+               showingHistory_},
               vm);
     if (haveView_ && vm == lastView_) return;  // nothing changed: skip the ~20 ms push
 

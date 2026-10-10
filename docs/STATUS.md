@@ -27,7 +27,9 @@ This is the source of truth for **what actually works**. Update it whenever some
 | Dim after 1 min idle | ✅ (`PowerPolicy`) | ✅ | ✅ |
 | Light sleep after 10 min (instant wake, yellow wake press counts as a tap) | ✅ | ✅ | ✅ (bench-tested 2026-10-10) |
 | Deep sleep after 30 min (wake on either button, history restored) | ✅ (`HistorySnapshot`) | ✅ | ✅ (bench-tested 2026-10-10) |
-| Status LED: off while awake, green while asleep | ⬜ | ✅ | 🟡 |
+| Status LED: off while awake, green while asleep | ⬜ | ✅ | ✅ |
+| History screen: last 10 throws, split + hog-to-hog columns (blue double-click) | ✅ (`ViewBuilder`) | ✅ | 🟡 |
+| Blue double-click detection (single click delayed by 0.35 s) | ✅ (`ButtonLogic`) | ✅ | 🟡 |
 
 ## Toolchains
 
@@ -35,7 +37,7 @@ This is the source of truth for **what actually works**. Update it whenever some
 |---|---|
 | Arduino CLI build: m5stack:esp32 3.3.9, M5Unified 0.2.25, M5GFX 0.2.32 | ✅ in the AI sandbox and in CI (`scripts/verify.sh`) |
 | PlatformIO build: pioarduino 55.03.39 | ✅ in the sandbox. ✅ on Mike's PC (compiled and linked; see the 2026-10-10 log) |
-| Host unit tests (41) | ✅ sandbox. On Mike's PC, needs a `g++` |
+| Host unit tests (52) | ✅ sandbox. On Mike's PC, needs a `g++` |
 | GitHub Actions CI | 🟡 Workflow written but not yet run; the repo isn't pushed to GitHub yet |
 
 ## Known issues
