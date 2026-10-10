@@ -186,7 +186,7 @@ void App::enterLightSleep(Millis budgetMs) {
     }
 
     const Millis nowMs = hw_.nowMillis();
-    hw_.wakeDisplay();
+    hw_.wakeUi();
     dimmed_ = true;  // so noteActivity() restores full brightness
     noteActivity(nowMs);
     haveView_ = false;  // force a full redraw

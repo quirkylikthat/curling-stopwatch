@@ -67,6 +67,11 @@ Still ⚠ to confirm on a device (see ARCHITECTURE.md §4):
 - **Deep sleep:** `esp_sleep_enable_ext1_wakeup_io(G1|G2, ESP_EXT1_WAKEUP_ANY_LOW)`. Both are RTC GPIOs (0–21 on the S3), and the external button pull-ups stay powered. After an EXT1 wake the pins are still in RTC mode, so `rtc_gpio_deinit()` hands them back to normal GPIO.
 - **Display:** `M5.Display.sleep()` / `wakeup()` = brightness 0 + CO5300 sleep-in (0x10) / sleep-out (0x11).
 - **USB power detection:** `M5.Power.getVBUSVoltage()` returns mV from the M5PM1 VIN register, or -1.
+- **Status LED:** the board's **only** LED is `LED1`, which is **green-only**. It's driven by the M5PM1's `LED_EN` pin (schematic net `PM_STATUS_LED`), so it can be switched on or off, but not recoloured.
+  - Firmware control: `M5.Power.M5pm1.setLedEnLevel(bool)`, which sets PWR_CFG (reg 0x06) bit 4.
+  - M5GFX switches it **on** during board detection at every boot.
+  - Because the M5PM1 is always powered, the LED keeps its state through ESP32 deep sleep.
+  - The M5PM1 also lights it itself for download mode.
 - **RTC memory:** `RTC_DATA_ATTR` puts the history snapshot (~1 KB) in RTC slow memory, which deep sleep retains.
 
 **Other sources** (not used yet):

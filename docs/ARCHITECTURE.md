@@ -181,6 +181,16 @@ Black background (black pixels are off, which saves battery), dim colours for st
 - Using the M5PM1's true power-off. That draws less, but only the power button can wake it.
 - Measuring the current in each state. All three are worth doing once there's a meter on the bench.
 
+### D18 — Green LED means "asleep"
+**Choice:** the status LED is **off while awake** and **green during light and deep sleep**. Powered off is dark. The settings are `kStatusLedWhenAwake` / `kStatusLedWhenAsleep`.
+**Why:** Mike asked for a yellow "asleep" light, but `LED1` is green-only on the power chip's `LED_EN` pin. The options considered were:
+- **LED off while asleep.** This matches the old behaviour, where the LED was always on. The drawback is that asleep then looks identical to powered off.
+- **A yellow on-screen indicator.** This would keep the AMOLED powered and defeat the sleep savings.
+- **Green only while asleep.** This was chosen: each of the three states (awake, asleep, off) is distinguishable at a glance.
+
+It costs no CPU, because the M5PM1 holds the LED state while the ESP32 sleeps.
+**Revisit if:** the LED draws more in deep sleep than it's worth once sleep current is measured. In that case, blink it from a periodic light-sleep wake, or drop it.
+
 ## 3. How to extend
 
 | You want to… | Do this |
@@ -210,6 +220,7 @@ The pins and polarity were confirmed from the M5Unified source. These can only b
    - Leave it idle past 80 s. Serial shows `[app] deep sleep, N results saved`.
    - Press either button. It should reboot without the splash, and the history row should still show your results.
    - Put the times back afterwards.
+8. **Status LED.** It should be off while the screen is on, and green during light sleep and deep sleep. After waking, it should go off again. After a double-press power-off, it should be dark.
 
 ## 5. Roadmap ideas (to discuss)
 

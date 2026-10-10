@@ -17,6 +17,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 
 ### Changed
 - Default active brightness changed from 200 to 180.
+- **Status LED:** now off while awake and green while asleep. Before this it was always on. (D18)
 
 ## [0.1.0] - 2026-10-09
 

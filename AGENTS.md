@@ -15,7 +15,7 @@ The owner is **Mike**. He rates his C++ as "some experience". He wants design de
 
 | File | Why |
 |---|---|
-| `docs/ARCHITECTURE.md` | Layers, main loop, **decision log D1–D17**. Don't contradict a decision without adding a new one that supersedes it. |
+| `docs/ARCHITECTURE.md` | Layers, main loop, **decision log D1–D18**. Don't contradict a decision without adding a new one that supersedes it. |
 | `docs/HARDWARE.md` | Pins, M5Unified API facts, sleep and wake details. Some items are verified from library source and some aren't; it says which. |
 | `docs/STATUS.md` | What's verified **on the device** versus only compiled or unit-tested. |
 | `src/Config.h` | Every tunable. |

@@ -15,18 +15,19 @@ This is the source of truth for **what actually works**. Update it whenever some
 
 | Feature | Unit tests | Builds (both toolchains) | On device |
 |---|---|---|---|
-| Split / hog-to-hog / combined timing (`SequenceTimer`) | ✅ | ✅ | 🟡 |
-| Interrupt-timestamped yellow button | ⬜ | ✅ | 🟡 |
-| Blue click (next mode, or cancel a run) / hold (clear history) | ✅ (`ButtonLogic`) | ✅ | 🟡 |
-| Weight bands (split) | ✅ | ✅ | 🟡 (bands are **placeholders**, not calibrated) |
-| Screen layout on the round AMOLED, flicker-free canvas | ✅ (`ViewBuilder`) | ✅ | 🟡 |
-| Haptic feedback patterns | ⬜ | ✅ | 🟡 |
-| Battery arc + charging colour | ⬜ | ✅ | 🟡 |
-| Mode remembered across power cycles (NVS) | ⬜ | ✅ | 🟡 |
+| Split / hog-to-hog / combined timing (`SequenceTimer`) | ✅ | ✅ | ✅ |
+| Interrupt-timestamped yellow button | ⬜ | ✅ | ✅ |
+| Blue click (next mode, or cancel a run) / hold (clear history) | ✅ (`ButtonLogic`) | ✅ | ✅ |
+| Weight bands (split) | ✅ | ✅ | ✅ (bands are **placeholders**, not calibrated) |
+| Screen layout on the round AMOLED, flicker-free canvas | ✅ (`ViewBuilder`) | ✅ | ✅ |
+| Haptic feedback patterns | ⬜ | ✅ | ✅ |
+| Battery arc + charging colour | ⬜ | ✅ | ✅ |
+| Mode remembered across power cycles (NVS) | ⬜ | ✅ | ✅ |
 | Serial CSV output | ⬜ | ✅ | 🟡 |
-| Dim after 1 min idle | ✅ (`PowerPolicy`) | ✅ | 🟡 |
-| Light sleep after 10 min (instant wake, yellow wake press counts as a tap) | ✅ | ✅ | 🟡 |
-| Deep sleep after 30 min (wake on either button, history restored) | ✅ (`HistorySnapshot`) | ✅ | 🟡 |
+| Dim after 1 min idle | ✅ (`PowerPolicy`) | ✅ | ✅ |
+| Light sleep after 10 min (instant wake, yellow wake press counts as a tap) | ✅ | ✅ | ✅ (bench-tested 2026-10-10) |
+| Deep sleep after 30 min (wake on either button, history restored) | ✅ (`HistorySnapshot`) | ✅ | ✅ (bench-tested 2026-10-10) |
+| Status LED: off while awake, green while asleep | ⬜ | ✅ | 🟡 |
 
 ## Toolchains
 

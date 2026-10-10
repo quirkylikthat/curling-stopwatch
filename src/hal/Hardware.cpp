@@ -71,6 +71,9 @@ bool Hardware::begin() {
 
     M5.Speaker.setVolume(config::kSpeakerVolume);
     M5.Power.setVibration(0);
+    // M5GFX switches the LED on during board detection; set our awake state.
+    // (Also turns it off again after a deep-sleep wake.)
+    setStatusLed(config::kStatusLedWhenAwake);
     readBattery();
     lastBatteryPollMs_ = nowMillis();
 
@@ -144,10 +147,16 @@ void Hardware::detachTimingInterrupt() {
     detachInterrupt(digitalPinToInterrupt(config::kPinTimingButton));
 }
 
+void Hardware::setStatusLed(bool on) {
+    if (M5.Power.getType() != m5::Power_Class::pmic_m5pm1) return;
+    M5.Power.M5pm1.setLedEnLevel(on);  // PWR_CFG bit 4 (LED_EN) -> green LED1
+}
+
 Hardware::WakeResult Hardware::lightSleep(Millis maxDurationMs) {
     M5.Power.setVibration(0);
     M5.Display.sleep();  // brightness 0 + panel sleep-in (AMOLED draws ~nothing)
     M5.Display.waitDisplay();
+    setStatusLed(config::kStatusLedWhenAsleep);
 
     // GPIO wake-up reprograms the pin's interrupt type to "level", which would
     // fight our edge interrupt -- so take the ISR off for the duration.
@@ -194,13 +203,17 @@ Hardware::WakeResult Hardware::lightSleep(Millis maxDurationMs) {
     return {reason, wokeAt};
 }
 
-void Hardware::wakeDisplay() { M5.Display.wakeup(); }
+void Hardware::wakeUi() {
+    M5.Display.wakeup();
+    setStatusLed(config::kStatusLedWhenAwake);
+}
 
 void Hardware::deepSleep() {
     M5.Power.setVibration(0);
     M5.Speaker.end();
     M5.Display.sleep();
     M5.Display.waitDisplay();
+    setStatusLed(config::kStatusLedWhenAsleep);  // the M5PM1 holds it through deep sleep
     detachTimingInterrupt();
 
     // A held button would wake us immediately; give it a moment to be released.

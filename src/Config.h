@@ -123,5 +123,11 @@ constexpr bool kLightSleepWakeTapCounts = true;
 constexpr bool kSleepOnUsbPower = true;
 constexpr int kUsbPresentMillivolts = 4000;  // VBUS above this = on USB power
 
+// Green status LED (the board's only LED; single colour, driven by the M5PM1).
+// Default: off while awake (the screen shows it's on), green while light/deep
+// sleeping, dark when powered off -- so the three states are tellable apart.
+constexpr bool kStatusLedWhenAwake = false;
+constexpr bool kStatusLedWhenAsleep = true;
+
 }  // namespace config
 }  // namespace curl
