@@ -37,7 +37,7 @@ This is the source of truth for **what actually works**. Update it whenever some
 | Menu (2 s blue hold), touch navigation, BACK / blue click | ✅ (`Menu`) | ✅ | ✅ (BACK reliable after D22) |
 | Settings → Brightness slider (live, saved) | ✅ (`UserSettings`, `Menu`) | ✅ | ✅ (survives power cycle) |
 | Settings → Split bands (−/+, SHIFT ALL, RESET; saved; used for labels/colours) | ✅ | ✅ | ✅ (saving, scrolling list, space below SHIFT ALL) |
-| Clear history moved to the menu, with confirmation | ✅ | ✅ | 🟡 |
+| Clear history moved to the menu, with confirmation | ✅ | ✅ | ✅ |
 | Export | ⬜ | ⬜ | ⬜ (placeholder page) |
 
 ## Toolchains
