@@ -22,7 +22,9 @@ Collected from the M5Stack docs and the M5Unified source (Oct 2026). Items marke
 - Board package **M5Stack ≥ 3.3.7** (3.3.9 latest). Board name: **M5StopWatch**. Index URL: `https://static-cdn.m5stack.com/resource/arduino/package_m5stack_index.json`
 - **M5Unified ≥ 0.2.25** (StopWatch support from 0.2.16; ES8311 audio fix in 0.2.22; fix for `Display.init()` called before `begin()` in 0.2.25)
 - **M5GFX ≥ 0.2.31** (required by M5Unified 0.2.24+)
-- M5Unified board enum: `m5::board_t::board_M5StopWatch`
+- M5Unified board enum: `m5::board_t::board_M5StopWatch`. The board is detected **at runtime** by probing I²C devices; there is no compile-time board define.
+- PlatformIO: pioarduino platform `55.03.39` (= Arduino-ESP32 3.3.9). Board JSON in `boards/`, pin variant in `variants/` (upstream has neither yet).
+- **OPI PSRAM must be enabled** (`qio_opi`). M5GFX checks `CONFIG_SPIRAM_MODE_OCT` at compile time, and without it the AMOLED falls back to direct drawing, which can mis-render glyphs at odd coordinates.
 
 ## API gotchas
 

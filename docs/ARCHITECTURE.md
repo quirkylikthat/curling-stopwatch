@@ -70,7 +70,7 @@ Nothing blocks. The only `delay()` is the 800 ms splash at boot.
 ### D1 — Arduino IDE sketch, code under `src/`
 **Choice:** a standard sketch (`stopwatch/stopwatch.ino`), with all real code under `src/`.
 **Why:** you asked for Arduino IDE. The IDE compiles `src/` recursively and ignores other folders such as `test/` and `docs/`, so we get a normal multi-file C++ project without a build system. The `.ino` stays three lines long, so the IDE's `.ino` preprocessing (auto-prototypes) can't surprise us.
-**Revisit if:** you want CI builds, pinned library versions, or faster incremental compiles. PlatformIO is the next step, and M5Stack publishes a ready `platformio.ini` for this board on the product page.
+**Update (v0.1.0):** PlatformIO was added alongside the IDE, not instead of it. See D16.
 
 ### D2 — Pure "core" layer, unit-tested on the PC
 **Choice:** the timing state machine, debounce logic, band classification, formatting and screen-content logic have no Arduino or M5 includes. Time is always passed in as a parameter; core never reads a clock.
@@ -136,6 +136,20 @@ The current mode is saved to NVS flash, and only when it changes. The 32-entry h
 
 ### D15 — AMOLED care
 Black background (black pixels are off, which saves battery), dim colours for static elements, and the screen dims after 60 s idle to reduce burn-in. Any input wakes it, **and a timing tap is still counted**, because the stone is already moving.
+
+### D16 — Two toolchains, one source tree (Arduino IDE + PlatformIO)
+**Choice:** keep the Arduino sketch layout, and add a `platformio.ini` that builds the *same* `stopwatch.ino` + `src/`. PlatformIO is the recommended day-to-day tool. The Arduino IDE remains a fully supported fallback.
+**Why:** the Arduino IDE never limited what the firmware can do. It limited the workflow: no version pinning, board settings stored in menus rather than the repo, no integrated tests, and a weak editor. PlatformIO fixes all four without touching the code.
+**How it's wired:**
+- `src_dir = .` points PlatformIO at the sketch root, and `build_src_filter` picks the files each environment needs. PlatformIO converts `stopwatch.ino` to a temporary `stopwatch.ino.cpp` during the build, which is why the filter says `+<*.ino.cpp>`.
+- **Platform: pioarduino 55.03.39**, not PlatformIO's official `espressif32`. The official platform stopped at Arduino-ESP32 2.x. pioarduino is the community-maintained 3.x platform, and release 55.03.39 is Arduino-ESP32 3.3.9, the same core as M5Stack's board package 3.3.9. Matching cores means both toolchains behave identically. M5Stack's sample `platformio.ini` uses the older 2.x platform, so we deliberately don't follow it.
+- **Board: `boards/m5stack-stopwatch.json`.** Neither PlatformIO platform ships a StopWatch board. The JSON mirrors the IDE defaults: OPI PSRAM (`qio_opi`), 16 MB flash, 3 MB app partition, USB CDC on boot, `-DARDUINO_M5STACK_STOPWATCH`. OPI PSRAM matters beyond our canvas, because M5GFX checks it at compile time for correct AMOLED rendering.
+- **Variant: `variants/m5stack_stopwatch/`.** Upstream Arduino-ESP32 has no StopWatch pin map yet, so we carry M5Stack's copy. That keeps `SDA`/`SCL` and friends identical to the IDE build, which matters once we use Port A. Six macros that `Arduino.h` redefines anyway were dropped to silence about 400 warnings per build.
+- **Versions pinned:** M5Unified 0.2.25, M5GFX 0.2.32. Upgrade deliberately, then run tests plus the device checklist.
+- **`[env:native]`** builds the same host tests as `make -C test`. `scripts/pio_tests.py` adds a "Run unit tests" task to the sidebar. A failing test fails the task, so this is ready for CI later.
+
+**Verified (Oct 2026):** both toolchains build with zero warnings from our code, and the native tests pass. The flash size differs slightly (IDE 602 KB, PlatformIO 644 KB) because of link details in the two platform packages. It is not a code difference.
+**Revisit if:** we need ESP-IDF settings that Arduino's prebuilt core fixes. pioarduino can also build with `framework = arduino, espidf` and a custom `sdkconfig`, so that path stays open without changing tools again.
 
 ## 3. How to extend
 
