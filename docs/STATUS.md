@@ -33,7 +33,7 @@ This is the source of truth for **what actually works**. Update it whenever some
 | IMU held in suspend (`kImuEnabled = false`) | ⬜ | ✅ | ✅ |
 | Grove 5 V booster off (`kGrovePortPower = false`) | ⬜ | ✅ | ✅ |
 | 1 ms idle per loop (`kLoopIdleMs`) | ⬜ | ✅ | ✅ |
-| Even spacing of the band label / secondary line (`ui/Layout.h`) | ✅ | ✅ | 🟡 |
+| Even spacing of the band label / secondary line (`ui/Layout.h`) | ✅ | ✅ | ✅ |
 
 ## Toolchains
 
