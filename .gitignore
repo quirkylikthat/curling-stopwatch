@@ -1,0 +1,22 @@
+# Build output
+build/
+test/build/
+*.bin
+*.elf
+*.map
+
+# Arduino IDE / CLI
+.arduino/
+sketch.json
+
+# PlatformIO (if adopted later)
+.pio/
+.vscode/.browse*
+.vscode/ipch
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+.idea/
