@@ -104,9 +104,16 @@ pio run -e native -t tests    # PlatformIO
 make -C test                  # plain make + g++
 ```
 
-## Note on OneDrive
+## Checking a change
 
-This folder lives in OneDrive. PlatformIO writes build output to `.pio/` (100+ MB), and OneDrive will try to sync it. OneDrive can also occasionally interfere with git's files. Once the repo is pushed to GitHub, consider moving the folder somewhere OneDrive doesn't sync, such as `C:\dev\stopwatch`. Both tools open it from anywhere.
+```bash
+scripts/verify.sh             # format, unit tests, PlatformIO + Arduino builds (CI runs this)
+scripts/verify.sh --quick     # format + unit tests only
+```
+
+On Windows: `powershell -ExecutionPolicy Bypass -File scripts\verify.ps1` runs the tests (if `g++` is installed) and the PlatformIO build.
+
+Keep the project out of OneDrive (it now lives in `C:\dev\stopwatch`). PlatformIO's `.pio/` build folder is 100+ MB, and OneDrive syncing can interfere with git.
 
 ## Project layout
 
@@ -121,14 +128,19 @@ stopwatch/
 │   └── app/             App (event routing) + ViewBuilder (state -> ViewModel)
 ├── test/                host unit tests
 ├── docs/
-│   ├── ARCHITECTURE.md  design and the reasons behind each decision
-│   └── HARDWARE.md      pin map, M5Unified API notes, gotchas
+│   ├── ARCHITECTURE.md  design and the reasons behind each decision (D1–D17)
+│   ├── HARDWARE.md      pin map, M5Unified API notes, gotchas
+│   └── STATUS.md        what's verified on the device vs. only compiled/tested
+├── AGENTS.md            rules + definition of done for AI agents and humans
+├── CLAUDE.md            imports AGENTS.md (for Claude Code)
+├── CHANGELOG.md
+├── scripts/             verify.sh/.ps1, pio-diagnose.ps1, pio_tests.py
+├── .github/workflows/   CI: runs scripts/verify.sh
 │
 │   PlatformIO only (Arduino IDE ignores these):
 ├── platformio.ini       envs: stopwatch (device), native (tests); pinned versions
 ├── boards/              m5stack-stopwatch.json board definition
-├── variants/            StopWatch pin map (copied from M5Stack's board package)
-└── scripts/             pio_tests.py adds the "Run unit tests" task
+└── variants/            StopWatch pin map (copied from M5Stack's board package)
 ```
 
-Read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) before adding features.
+Before changing code, read [AGENTS.md](AGENTS.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). This applies whether you're a person or an AI model.

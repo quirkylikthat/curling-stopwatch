@@ -2,6 +2,8 @@
 
 This document explains how the firmware is put together and why. Read it before adding features. Add a new entry to the decision log whenever you make a choice that someone (including future you) might later question.
 
+The rules every change must follow are in [`AGENTS.md`](../AGENTS.md): the invariants and the definition of done. What has actually been verified on the device is in [`STATUS.md`](STATUS.md).
+
 ## 1. The shape of the system
 
 ```mermaid
