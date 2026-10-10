@@ -36,12 +36,15 @@ $header = @(
     "PlatformIO: $(& $pio --version 2>&1)"
     "LongPathsEnabled: $longPaths"
     "Relevant env vars:"
-) + $envVars + "=== pio run -e stopwatch -v ==="
+) + $envVars + "=== pio run -e stopwatch ==="
 Set-Content -Path $log -Value $header -Encoding utf8
 
 Write-Host "Building (first run downloads ~1 GB and can take 10-20 min). Logging to $log"
 Push-Location $project
-cmd /c "`"$pio`" run -e stopwatch -v >> `"$log`" 2>&1"
+# No -v: pioarduino 55.03.39 crashes in verbose mode while printing the
+# firmware.bin step ("TypeError: ... '_Null' and 'str'"). chcp 65001 lets
+# PlatformIO print its memory-usage table into the log.
+cmd /c "chcp 65001 >nul & `"$pio`" run -e stopwatch >> `"$log`" 2>&1"
 $rc = $LASTEXITCODE
 Pop-Location
 

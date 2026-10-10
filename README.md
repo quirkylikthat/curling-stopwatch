@@ -49,6 +49,11 @@ What's pinned: [pioarduino](https://github.com/pioarduino/platform-espressif32) 
 
 PlatformIO creates `.vscode/` and `.pio/` itself. Both are git-ignored.
 
+**Known issues (pioarduino 55.03.39 on Windows):**
+- **Don't use *Verbose Build* (`pio run -v`).** The platform crashes while printing the `firmware.bin` step (`TypeError: ... '_Null' and 'str'`), even though compiling and linking succeeded. Normal *Build* works.
+- **If you see `MissingPackageManifestError`, a toolchain install was interrupted.** Close VS Code, then run `scripts\pio-diagnose.ps1 -Reset`. It clears PlatformIO's downloaded toolchain, rebuilds, and writes `pio-build.log`.
+- **Optional:** enable Windows long-path support for faster builds. PlatformIO prints the one-line admin command for this.
+
 ## Setup (Arduino IDE 2.x)
 
 1. **Board package.** *File → Preferences → Additional boards manager URLs*, add
