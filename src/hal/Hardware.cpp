@@ -47,8 +47,11 @@ bool Hardware::begin() {
     }
 
     auto cfg = M5.config();
+    cfg.internal_imu = config::kImuEnabled;      // default true: accel + gyro on (~0.7 mA)
+    cfg.output_power = config::kGrovePortPower;  // default true: Grove 5 V boost on
     M5.begin(cfg);  // must come before any M5.Display call (M5Unified 0.2.25 fix)
     Serial.begin(115200);
+    if (!config::kImuEnabled) suspendImu();
 
     // Same as M5Unified does for this board: plain inputs, external pull-ups.
     // (M5Unified only polls these pins, so our interrupt doesn't conflict.)
@@ -148,16 +151,32 @@ void Hardware::detachTimingInterrupt() {
     detachInterrupt(digitalPinToInterrupt(config::kPinTimingButton));
 }
 
+void Hardware::suspendImu() {
+    // BMI270 at 0x68 on the internal bus. It sits on the always-on L1 rail, so a
+    // reboot (including a deep-sleep wake) doesn't reset it: whatever mode an
+    // earlier firmware left it in persists. Put it in suspend explicitly.
+    constexpr uint8_t kAddr = 0x68;
+    constexpr uint8_t kPwrConf = 0x7C;  // bit0 = advanced power save
+    constexpr uint8_t kPwrCtrl = 0x7D;  // bits: aux, gyro, accel, temp enable
+    constexpr uint32_t kFreq = 400000;
+    const bool ok = M5.In_I2C.writeRegister8(kAddr, kPwrCtrl, 0x00, kFreq) &&  // all sensors off
+                    M5.In_I2C.writeRegister8(kAddr, kPwrConf, 0x01, kFreq);    // power save on
+    if (!ok) Serial.println("[hw] IMU suspend failed (no BMI270 at 0x68?)");
+}
+
 void Hardware::setStatusLed(bool on) {
     if (M5.Power.getType() != m5::Power_Class::pmic_m5pm1) return;
     M5.Power.M5pm1.setLedEnLevel(on);  // PWR_CFG bit 4 (LED_EN) -> green LED1
 }
 
 Hardware::WakeResult Hardware::lightSleep(Millis maxDurationMs) {
+    using config::LedMode;
+    const LedMode led = config::kStatusLedLightSleep;
+
     M5.Power.setVibration(0);
     M5.Display.sleep();  // brightness 0 + panel sleep-in (AMOLED draws ~nothing)
     M5.Display.waitDisplay();
-    setStatusLed(config::kStatusLedWhenAsleep);
+    setStatusLed(led == LedMode::On);
 
     // GPIO wake-up reprograms the pin's interrupt type to "level", which would
     // fight our edge interrupt -- so take the ISR off for the duration.
@@ -167,18 +186,67 @@ Hardware::WakeResult Hardware::lightSleep(Millis maxDurationMs) {
     gpio_wakeup_enable(kTimingGpio, pressed);
     gpio_wakeup_enable(kControlGpio, pressed);
     esp_sleep_enable_gpio_wakeup();
-    if (maxDurationMs)
-        esp_sleep_enable_timer_wakeup(static_cast<uint64_t>(maxDurationMs) * 1000ULL);
 
     Serial.println("[power] light sleep");
     Serial.flush();
-    esp_light_sleep_start();  // returns at once if a button is already held
-    const Micros wokeAt = nowMicros();
 
-    const esp_sleep_wakeup_cause_t cause = esp_sleep_get_wakeup_cause();
-    const bool timingDown = readPressed(config::kPinTimingButton);
-    const bool controlDown = readPressed(config::kPinControlButton);
+    // Sleep in slices: each timer wake-up either blinks the LED (a few ms
+    // awake, then asleep again with it lit for kStatusLedFlashOnMs) or ends
+    // the light sleep because deep sleep is due. Only a button, the deadline,
+    // or a rejected sleep returns to the caller.
+    const Micros startUs = nowMicros();
+    const Micros budgetUs = static_cast<Micros>(maxDurationMs) * 1000ULL;  // 0 = no deadline
+    const Micros flashPeriodUs = static_cast<Micros>(config::kStatusLedFlashPeriodMs) * 1000ULL;
+    const Micros flashOnUs = static_cast<Micros>(config::kStatusLedFlashOnMs) * 1000ULL;
 
+    WakeReason reason = WakeReason::Other;
+    Micros wokeAt = 0;
+    bool timingDown = false;
+    bool controlDown = false;
+
+    auto sleepFor = [&](Micros us) -> bool {  // false = sleep was rejected
+        if (us) {
+            esp_sleep_enable_timer_wakeup(us);
+        } else {
+            esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_TIMER);
+        }
+        const bool ok = esp_light_sleep_start() == ESP_OK;
+        wokeAt = nowMicros();
+        timingDown = readPressed(config::kPinTimingButton);
+        controlDown = readPressed(config::kPinControlButton);
+        return ok;
+    };
+
+    for (;;) {
+        // Next timer wake-up: the next flash or the deadline, whichever comes first.
+        Micros sliceUs = (led == LedMode::Flash) ? flashPeriodUs : 0;
+        if (budgetUs) {
+            const Micros elapsed = nowMicros() - startUs;
+            if (elapsed >= budgetUs) {
+                reason = WakeReason::Timer;
+                break;
+            }
+            const Micros left = budgetUs - elapsed;
+            if (!sliceUs || left < sliceUs) sliceUs = left;
+        }
+
+        if (!sleepFor(sliceUs)) break;         // rejected (e.g. button held): Other
+        if (timingDown || controlDown) break;  // a button: handled below
+        if (esp_sleep_get_wakeup_cause() != ESP_SLEEP_WAKEUP_TIMER) continue;  // spurious
+        if (budgetUs && nowMicros() - startUs >= budgetUs) {
+            reason = WakeReason::Timer;
+            break;
+        }
+
+        if (led == LedMode::Flash) {
+            setStatusLed(true);
+            const bool ok = sleepFor(flashOnUs);  // stay asleep while it's lit
+            setStatusLed(false);
+            if (!ok || timingDown || controlDown) break;
+        }
+    }
+
+    setStatusLed(false);
     gpio_wakeup_disable(kTimingGpio);
     gpio_wakeup_disable(kControlGpio);
     esp_sleep_disable_wakeup_source(ESP_SLEEP_WAKEUP_ALL);
@@ -189,13 +257,10 @@ Hardware::WakeResult Hardware::lightSleep(Millis maxDurationMs) {
     if (timingDown) timingPoll_.suppressUntilRelease();
 
     // Buttons first: a press can race the timer.
-    WakeReason reason = WakeReason::Other;
     if (timingDown) {
         reason = WakeReason::TimingButton;
     } else if (controlDown) {
         reason = WakeReason::ControlButton;
-    } else if (cause == ESP_SLEEP_WAKEUP_TIMER) {
-        reason = WakeReason::Timer;
     }
     Serial.printf("[power] woke: %s\n", reason == WakeReason::Timer           ? "timer"
                                         : reason == WakeReason::TimingButton  ? "yellow"
@@ -214,7 +279,7 @@ void Hardware::deepSleep() {
     M5.Speaker.end();
     M5.Display.sleep();
     M5.Display.waitDisplay();
-    setStatusLed(config::kStatusLedWhenAsleep);  // the M5PM1 holds it through deep sleep
+    setStatusLed(config::kStatusLedInDeepSleep);  // the M5PM1 holds it through deep sleep
     detachTimingInterrupt();
 
     // A held button would wake us immediately; give it a moment to be released.

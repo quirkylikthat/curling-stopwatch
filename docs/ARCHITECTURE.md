@@ -181,8 +181,8 @@ Black background (black pixels are off, which saves battery), dim colours for st
 - Using the M5PM1's true power-off. That draws less, but only the power button can wake it.
 - Measuring the current in each state. All three are worth doing once there's a meter on the bench.
 
-### D18 — Green LED means "asleep"
-**Choice:** the status LED is **off while awake** and **green during light and deep sleep**. Powered off is dark. The settings are `kStatusLedWhenAwake` / `kStatusLedWhenAsleep`.
+### D18 — Green LED means "asleep" *(LED behaviour revised by D20)*
+**Choice (original):** the status LED is **off while awake** and **green during light and deep sleep**. Powered off is dark. D20 changed this to a flash in light sleep and off in deep sleep.
 **Why:** Mike asked for a yellow "asleep" light, but `LED1` is green-only on the power chip's `LED_EN` pin. The options considered were:
 - **LED off while asleep.** This matches the old behaviour, where the LED was always on. The drawback is that asleep then looks identical to powered off.
 - **A yellow on-screen indicator.** This would keep the AMOLED powered and defeat the sleep savings.
@@ -210,6 +210,29 @@ Navigation:
 - **Rows come straight from the 32-entry RAM history,** which is restored after deep sleep. No new storage was needed.
 
 **Revisit if:** Mike wants more than 10 rows. That needs scrolling (a yellow/blue page action), or a smaller font at the cost of readability. Also revisit if the single-click delay feels sluggish on the ice; shortening `kControlDoubleClickMs` makes the double-click harder to hit.
+
+### D20 — Power trims: unused hardware off, idle the CPU, flash the LED
+**Choice:** four changes. All are switchable in `Config.h`, and none are measured yet.
+
+| Change | Setting | Expected saving |
+|---|---|---|
+| Hold the **BMI270 IMU in suspend** (we don't use it) | `kImuEnabled = false` | ~0.7 mA, in every state |
+| Keep the **Grove port 5 V booster off** (nothing plugged in) | `kGrovePortPower = false` | Unknown, probably 0.1–1 mA |
+| **1 ms idle per `loop()`**, so the CPU core can enter WAITI instead of spinning at 240 MHz | `kLoopIdleMs = 1` | Likely tens of mA while awake |
+| Status LED **flashes 50 ms every 5 s in light sleep**, and is **off in deep sleep** | `kStatusLedLightSleep`, `kStatusLedInDeepSleep` | ~0.5 mA asleep, versus the solid LED of D18 |
+
+**Why:**
+- **IMU and booster:** M5Unified's defaults (`internal_imu`, `output_power`) switch both on, and we use neither. The BMI270 is on the always-on L1 rail, so a reboot doesn't reset it. `Hardware::suspendImu()` therefore writes suspend explicitly (PWR_CTRL = 0, PWR_CONF = adv_power_save) rather than just not starting it.
+- **The loop pause** keeps timing accuracy intact, because taps are timestamped in the ISR. The pause only delays *handling* by about 1 ms. This refines invariant 4: no blocking delays except this deliberate idle yield.
+- **The LED flash** comes from timer wake-ups inside `Hardware::lightSleep()`. Each wake turns the LED on, light-sleeps for 50 ms with it lit, then turns it off. That's two wakes of a few ms per flash, roughly 0.07 mA on average. The caller (App) only sees button, deadline, or rejected-sleep wakes.
+- **Why not flash in deep sleep:** each wake from deep sleep is a ~1 s reboot. The ULP coprocessor can't reach the M5PM1 (its I²C pins G47/48 aren't RTC GPIOs). So the LED is off in deep sleep. The trade-off is that deep sleep then looks the same as powered off.
+
+**Not done (yet):**
+- Putting the touch controller to sleep and stopping M5Unified's touch polling.
+- Re-enabling the M5PM1/M5IOE1 I²C idle sleep. M5Stack disabled it deliberately, because the first message after waking is lost.
+- A lower CPU frequency.
+
+**Revisit if:** measurements show different priorities.
 
 ## 3. How to extend
 
@@ -241,13 +264,22 @@ The pins and polarity were confirmed from the M5Unified source. These can only b
    - Leave it idle past 80 s. Serial shows `[app] deep sleep, N results saved`.
    - Press either button. It should reboot without the splash, and the history row should still show your results.
    - Put the times back afterwards.
-8. **Status LED.** It should be off while the screen is on, and green during light sleep and deep sleep. After waking, it should go off again. After a double-press power-off, it should be dark.
+8. **Status LED (D20).**
+   - Screen on: off.
+   - Light sleep: a short flash about every 5 s.
+   - Pressing a button during or between flashes should wake the device instantly, with the LED off.
+   - Deep sleep: off.
+   - After a double-press power-off: dark.
 9. **History screen.** Time a few throws in each mode, including one SPLIT+H2H. Then:
    - **Double-click blue.** The history screen should show the throws newest first. The SPLIT+H2H throw should have both values on one row, and the others should show `-`.
    - **Check the edges.** All 10 rows and the footer should sit fully inside the round screen.
    - **Single-click blue.** It should go back without changing the mode.
    - **Re-open the history screen and tap yellow.** It should jump back with the timer running. Tap again for a normal result.
    - **Single click on the timing screen.** It should still change mode, about 0.3 s after release.
+10. **Power trims (D20).**
+    - The boot log shouldn't show `[hw] IMU suspend failed`.
+    - Timing, buttons, haptics and the live display should feel the same as before the 1 ms loop pause.
+    - Optional, with an inline USB meter on a fully charged device: compare the current awake, in light sleep and in deep sleep against the old firmware.
 
 ## 5. Roadmap ideas (to discuss)
 

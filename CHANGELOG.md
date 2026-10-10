@@ -20,6 +20,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 - Default active brightness changed from 200 to 180.
 - **Status LED:** now off while awake and green while asleep. Before this it was always on. (D18)
 - **Blue single click** now acts about 0.3 s after release, while it waits to rule out a double-click. (D19)
+- **Status LED in sleep:** now a 50 ms flash every 5 s in light sleep, and off in deep sleep. It was solid green. (D20)
+- **Battery trims** (D20):
+  - The motion sensor is held in suspend.
+  - The Grove port's 5 V booster is off. Set `kGrovePortPower = true` before using a Grove unit.
+  - The main loop now idles 1 ms per pass.
 
 ## [0.1.0] - 2026-10-09
 

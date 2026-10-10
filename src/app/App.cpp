@@ -64,6 +64,10 @@ void App::loop() {
     haptics_.update(nowMs);
     updatePower(nowMs);
     updateDisplay(now, nowMs);
+
+    // Let the CPU core idle instead of spinning flat out. Taps are timestamped
+    // in the ISR, so this adds no timing error; it only delays *handling* by ~1 ms.
+    if (kLoopIdleMs) delay(kLoopIdleMs);
 }
 
 void App::handle(const InputEvent& e, Millis nowMs) {

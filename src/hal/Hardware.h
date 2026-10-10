@@ -42,18 +42,19 @@ public:
         Micros wokeAt;  // esp_timer time right after the CPU resumed
     };
 
-    // Screen off, status LED to its "asleep" state, CPU paused, RAM kept.
-    // Returns when a button is pressed or after maxDurationMs (0 = no timer).
-    // The screen stays OFF on return; call wakeUi() unless you're heading
-    // straight into deep sleep.
+    // Screen off, CPU paused, RAM kept. Returns when a button is pressed or
+    // after maxDurationMs (0 = no timer). While asleep the status LED follows
+    // kStatusLedLightSleep (Flash = brief wake-ups every kStatusLedFlashPeriodMs
+    // to blink it; they don't return to the caller). The screen stays OFF on
+    // return; call wakeUi() unless you're heading straight into deep sleep.
     WakeResult lightSleep(Millis maxDurationMs);
 
     // Screen back on, status LED back to its "awake" state.
     void wakeUi();
 
-    // Everything except RTC memory off (status LED stays in its "asleep"
-    // state: the power chip keeps it); either button reboots the device.
-    // Does not return.
+    // Everything except RTC memory off; the status LED is set to
+    // kStatusLedInDeepSleep (the power chip holds it). Either button reboots
+    // the device. Does not return.
     [[noreturn]] void deepSleep();
 
     // Green status LED on the M5PM1 (no-op on any other power chip).
@@ -63,6 +64,7 @@ private:
     void readBattery();
     void attachTimingInterrupt();
     void detachTimingInterrupt();
+    void suspendImu();
 
     bool usbPower_ = false;
     bool wokeFromDeepSleep_ = false;

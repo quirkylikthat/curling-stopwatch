@@ -71,7 +71,20 @@ Still ⚠ to confirm on a device (see ARCHITECTURE.md §4):
   - Firmware control: `M5.Power.M5pm1.setLedEnLevel(bool)`, which sets PWR_CFG (reg 0x06) bit 4.
   - M5GFX switches it **on** during board detection at every boot.
   - Because the M5PM1 is always powered, the LED keeps its state through ESP32 deep sleep.
-  - The M5PM1 also lights it itself for download mode.
+  - The M5PM1 also lights it itself for download mode, and flashes it on reset.
+  - The M5PM1 has **no user-programmable blink**. Its only flash patterns are the system states above (per the M5PM1 datasheet). Our light-sleep flash is driven by ESP32 timer wake-ups.
+  - Measured on the schematic: a 2.2 kΩ resistor gives about **0.55 mA** when lit.
+  - Power-off turns `LED_EN` off.
+- **M5Unified defaults we override** (`Hardware::begin`):
+  - `cfg.internal_imu`: on by default, it starts the BMI270 with accel + gyro on and power save off (`PWR_CTRL=0x0E`, `PWR_CONF=0x00`), about **0.685 mA**. We set it false, then write suspend (`PWR_CTRL=0x00`, `PWR_CONF=0x01`, about 3.5 µA).
+    - The BMI270 is on the **L1 rail, which is never switched off by an ESP32 reboot or deep sleep**. Its mode persists across firmware changes until it's written or the battery is disconnected.
+  - `cfg.output_power`: on by default, it sets M5PM1 `PWR_CFG` bit 3, which turns on the 5 V boost for the Grove port. We set it false. The M5PM1's own default has the boost off.
+- **Already off unless used:**
+  - **Audio:** the codec, mic and speaker amplifier are powered via M5IOE1 G3/G10 only when `M5.Speaker` or `M5.Mic` starts.
+  - **Radio:** Wi-Fi and BT are never started.
+- **Still running, not yet addressed:**
+  - **Touch:** M5Unified polls the CST820 touch controller over I²C (≥ 4 ms interval).
+  - **Helper chips:** M5GFX disables the I²C idle sleep of both M5PM1 and M5IOE1 (both are PY32 MCUs).
 - **RTC memory:** `RTC_DATA_ATTR` puts the history snapshot (~1 KB) in RTC slow memory, which deep sleep retains.
 
 **Other sources** (not used yet):

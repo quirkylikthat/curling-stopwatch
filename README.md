@@ -41,7 +41,18 @@ Results also go out over USB serial at 115200 baud as `csv,...` lines, for loggi
 | 10 min | **Light sleep**: screen off, CPU paused, everything kept in memory | Any button, instant. A yellow press **also starts timing**, as if the screen had been on. |
 | 30 min | **Deep sleep**: nearly everything off | Either button. The device reboots in about 1 s, and **the history is kept**. The press only wakes it. |
 
-**Green LED:** off while the device is awake (the screen shows it's on), **green while asleep** (light or deep), and dark when powered off. It's the board's only LED and it's green-only, so a yellow "asleep" light isn't possible. Change this with `kStatusLedWhenAwake` / `kStatusLedWhenAsleep`.
+**Green LED:**
+- **Awake:** off (the screen shows it's on).
+- **Light sleep:** **a short flash every 5 s**.
+- **Deep sleep:** off. The processor is off then, so it can't flash, and a solid light would cost about 0.55 mA.
+- **Powered off:** dark.
+
+It's the board's only LED and it's green-only. Change its behaviour with `kStatusLedWhenAwake`, `kStatusLedLightSleep` and `kStatusLedInDeepSleep`.
+
+**Unused hardware is kept off:**
+- **Motion sensor:** held in suspend (`kImuEnabled = false`).
+- **Grove port 5 V output:** off (`kGrovePortPower = false`). **Set this to `true` before plugging in a Grove unit.**
+- **Main loop:** pauses 1 ms per pass so the processor can idle (`kLoopIdleMs`). Timing isn't affected.
 
 All times are in `src/Config.h` (`kDimAfterMs`, `kLightSleepAfterMs`, `kDeepSleepAfterMs`; 0 disables a stage).
 

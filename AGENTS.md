@@ -15,7 +15,7 @@ The owner is **Mike**. He rates his C++ as "some experience". He wants design de
 
 | File | Why |
 |---|---|
-| `docs/ARCHITECTURE.md` | Layers, main loop, **decision log D1–D19**. Don't contradict a decision without adding a new one that supersedes it. |
+| `docs/ARCHITECTURE.md` | Layers, main loop, **decision log D1–D20**. Don't contradict a decision without adding a new one that supersedes it. |
 | `docs/HARDWARE.md` | Pins, M5Unified API facts, sleep and wake details. Some items are verified from library source and some aren't; it says which. |
 | `docs/STATUS.md` | What's verified **on the device** versus only compiled or unit-tested. |
 | `src/Config.h` | Every tunable. |
@@ -30,7 +30,10 @@ The owner is **Mike**. He rates his C++ as "some experience". He wants design de
    - `ui` must not know `app`, and `hal` must not know `ui`.
 3. **Tunables live in `Config.h`.** No magic numbers elsewhere.
 4. **`loop()` never blocks.**
-   - No `delay()`. The only exceptions are the boot splash and the brief release-wait before deep sleep.
+   - No `delay()`. The only exceptions are:
+     - the boot splash;
+     - the brief release-wait before deep sleep;
+     - the deliberate **1 ms idle yield at the end of each `loop()`** (`kLoopIdleMs`), which lets the CPU core idle (D20).
    - No busy-waits.
    - Feedback (haptics, beeps) is non-blocking.
 5. **No heap or `String` after boot.** Use fixed buffers: `RingBuffer`, `EventFifo`, `char[]`.

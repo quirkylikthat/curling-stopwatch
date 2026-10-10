@@ -127,11 +127,28 @@ constexpr bool kLightSleepWakeTapCounts = true;
 constexpr bool kSleepOnUsbPower = true;
 constexpr int kUsbPresentMillivolts = 4000;  // VBUS above this = on USB power
 
-// Green status LED (the board's only LED; single colour, driven by the M5PM1).
-// Default: off while awake (the screen shows it's on), green while light/deep
-// sleeping, dark when powered off -- so the three states are tellable apart.
+// Green status LED (the board's only LED; single colour, on/off only, driven by
+// the M5PM1). Default: off while awake (the screen shows it's on), a short flash
+// every 5 s in light sleep, off in deep sleep (the CPU is off, so it can't flash
+// there, and solid would cost ~0.55 mA). Powered off = dark too.
+enum class LedMode : uint8_t { Off, On, Flash };
 constexpr bool kStatusLedWhenAwake = false;
-constexpr bool kStatusLedWhenAsleep = true;
+constexpr LedMode kStatusLedLightSleep = LedMode::Flash;
+constexpr bool kStatusLedInDeepSleep = false;
+constexpr Millis kStatusLedFlashPeriodMs = 5000;  // one flash every 5 s ...
+constexpr Millis kStatusLedFlashOnMs = 50;        // ... lit for 50 ms
+
+// --- Unused hardware, kept off to save battery -------------------------------
+// Motion sensor (BMI270). M5Unified would start accel + gyro (~0.7 mA); we don't
+// use it, so it's held in suspend (~3.5 uA). true = let M5Unified start it.
+constexpr bool kImuEnabled = false;
+// 5 V output on the Grove port (M5PM1 boost converter). Nothing is plugged in,
+// so the booster stays off. Set true before connecting a Grove unit.
+constexpr bool kGrovePortPower = false;
+
+// Pause at the end of every loop() so the CPU core can idle (WAITI) instead of
+// spinning at 240 MHz. Timing isn't affected: taps are timestamped in the ISR.
+constexpr Millis kLoopIdleMs = 1;
 
 }  // namespace config
 }  // namespace curl
