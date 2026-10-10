@@ -17,7 +17,7 @@ Firmware for the [M5Stack StopWatch](https://docs.m5stack.com/en/core/StopWatch)
 | Input | Action |
 |---|---|
 | Yellow, tap | Start, then stop, at each line. Every accepted tap buzzes. On the history screen, it jumps back **and** starts timing. |
-| Blue, click | While timing: cancel (false start). On the history screen: back. Otherwise: next mode. Reacts about 0.35 s after release, because it waits to rule out a double-click. |
+| Blue, click | While timing: cancel (false start). On the history screen: back. Otherwise: next mode. Reacts about 0.3 s after release, because it waits to rule out a double-click. |
 | Blue, double-click | Open or close the **history screen** |
 | Blue, hold (0.8 s) | Clear history |
 | Power, click / double-click | Reset / power off (hardware) |

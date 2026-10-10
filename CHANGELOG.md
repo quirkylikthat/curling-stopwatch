@@ -19,7 +19,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 ### Changed
 - Default active brightness changed from 200 to 180.
 - **Status LED:** now off while awake and green while asleep. Before this it was always on. (D18)
-- **Blue single click** now acts about 0.35 s after release, while it waits to rule out a double-click. (D19)
+- **Blue single click** now acts about 0.3 s after release, while it waits to rule out a double-click. (D19)
 
 ## [0.1.0] - 2026-10-09
 

@@ -204,7 +204,7 @@ Navigation:
 - **Light sleep** always wakes to the timing screen.
 
 **Why:**
-- **Buttons, not touch.** Capacitive touch doesn't work through curling gloves. The cost of a double-click is that every single blue click is delayed by the double-click window (350 ms), because `ButtonLogic` waits to rule out a second press. A blue hold was already taken (clear history).
+- **Buttons, not touch.** Capacitive touch doesn't work through curling gloves. The cost of a double-click is that every single blue click is delayed by the double-click window (300 ms; tuned on the device from 350 ms), because `ButtonLogic` waits to rule out a second press. A blue hold was already taken (clear history).
 - **Yellow never gets swallowed.** That follows invariant 7, and a stone may be moving when you glance at the history.
 - **Same `ViewModel`/`Renderer` path, with a `Screen::History` case.** One dirty-check and one canvas push serve both screens. The history view doesn't depend on the live timer, so a run in progress causes no redraws while you're on it.
 - **Rows come straight from the 32-entry RAM history,** which is restored after deep sleep. No new storage was needed.
@@ -247,7 +247,7 @@ The pins and polarity were confirmed from the M5Unified source. These can only b
    - **Check the edges.** All 10 rows and the footer should sit fully inside the round screen.
    - **Single-click blue.** It should go back without changing the mode.
    - **Re-open the history screen and tap yellow.** It should jump back with the timer running. Tap again for a normal result.
-   - **Single click on the timing screen.** It should still change mode, about 0.35 s after release.
+   - **Single click on the timing screen.** It should still change mode, about 0.3 s after release.
 
 ## 5. Roadmap ideas (to discuss)
 
