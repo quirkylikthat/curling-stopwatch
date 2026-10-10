@@ -41,16 +41,20 @@ void fillHistory(ViewModel& out, const History& history, size_t skip) {
 
 const char* intervalName(IntervalKind kind) {
     switch (kind) {
-        case IntervalKind::Split: return "SPLIT";
-        case IntervalKind::HogToHog: return "HOG-HOG";
+        case IntervalKind::Split:
+            return "SPLIT";
+        case IntervalKind::HogToHog:
+            return "HOG-HOG";
     }
     return "";
 }
 
 const Band* bandFor(IntervalKind kind, float seconds) {
     switch (kind) {
-        case IntervalKind::Split: return classify(config::kSplitBands, seconds);
-        case IntervalKind::HogToHog: return classify(config::kHogToHogBands, seconds);
+        case IntervalKind::Split:
+            return classify(config::kSplitBands, seconds);
+        case IntervalKind::HogToHog:
+            return classify(config::kHogToHogBands, seconds);
     }
     return nullptr;
 }
@@ -79,8 +83,8 @@ void buildView(const ViewInputs& in, ViewModel& out) {
             copyText(out.hint, hint);
             if (done > 0) {
                 out.hasSecondary = true;
-                fillReadout(out.secondary, p.intervals[0].kind, in.timer.completedDuration(0), 2, true,
-                            true);
+                fillReadout(out.secondary, p.intervals[0].kind, in.timer.completedDuration(0), 2,
+                            true, true);
             }
             fillHistory(out, in.history, 0);
             break;

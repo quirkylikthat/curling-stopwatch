@@ -36,21 +36,21 @@ struct IntervalSpec {
 };
 
 struct TimingProfile {
-    const char* name;                 // full name, e.g. "Split"
-    const char* shortName;            // shown on screen, e.g. "SPLIT"
-    uint8_t gateCount;                // 2..kMaxGates
-    const char* gateNames[kMaxGates]; // prompts: "BACK LINE", "NEAR HOG", ...
+    const char* name;                  // full name, e.g. "Split"
+    const char* shortName;             // shown on screen, e.g. "SPLIT"
+    uint8_t gateCount;                 // 2..kMaxGates
+    const char* gateNames[kMaxGates];  // prompts: "BACK LINE", "NEAR HOG", ...
     IntervalSpec intervals[kMaxIntervals];
 };
 
 // One finished (or partially finished) timing run.
 struct Measurement {
-    uint32_t sequence = 0;       // increments for every measurement since boot
-    uint8_t profileIndex = 0;    // which TimingProfile produced it
-    uint8_t intervalCount = 0;   // how many intervals were actually captured
+    uint32_t sequence = 0;      // increments for every measurement since boot
+    uint8_t profileIndex = 0;   // which TimingProfile produced it
+    uint8_t intervalCount = 0;  // how many intervals were actually captured
     IntervalKind kinds[kMaxIntervals] = {};
     Micros durations[kMaxIntervals] = {};
-    bool complete = false;       // false = timed out after at least one interval
+    bool complete = false;  // false = timed out after at least one interval
 
     float seconds(uint8_t i) const {
         return i < intervalCount ? static_cast<float>(durations[i]) / 1e6f : 0.0f;

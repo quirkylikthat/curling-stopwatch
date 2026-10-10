@@ -157,7 +157,8 @@ Hardware::WakeResult Hardware::lightSleep(Millis maxDurationMs) {
     gpio_wakeup_enable(kTimingGpio, pressed);
     gpio_wakeup_enable(kControlGpio, pressed);
     esp_sleep_enable_gpio_wakeup();
-    if (maxDurationMs) esp_sleep_enable_timer_wakeup(static_cast<uint64_t>(maxDurationMs) * 1000ULL);
+    if (maxDurationMs)
+        esp_sleep_enable_timer_wakeup(static_cast<uint64_t>(maxDurationMs) * 1000ULL);
 
     Serial.println("[power] light sleep");
     Serial.flush();
@@ -186,10 +187,10 @@ Hardware::WakeResult Hardware::lightSleep(Millis maxDurationMs) {
     } else if (cause == ESP_SLEEP_WAKEUP_TIMER) {
         reason = WakeReason::Timer;
     }
-    Serial.printf("[power] woke: %s\n", reason == WakeReason::Timer          ? "timer"
-                                        : reason == WakeReason::TimingButton ? "yellow"
+    Serial.printf("[power] woke: %s\n", reason == WakeReason::Timer           ? "timer"
+                                        : reason == WakeReason::TimingButton  ? "yellow"
                                         : reason == WakeReason::ControlButton ? "blue"
-                                                                               : "other");
+                                                                              : "other");
     return {reason, wokeAt};
 }
 

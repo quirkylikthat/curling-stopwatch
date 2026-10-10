@@ -25,8 +25,8 @@ constexpr uint16_t rgb565(uint8_t r, uint8_t g, uint8_t b) {
 // KEYA (yellow) = G2, KEYB (blue) = G1. We read these GPIOs directly rather
 // than via M5.BtnA/BtnB so timing never depends on M5Unified's button mapping
 // or polling rate.
-constexpr int kPinTimingButton = 2;   // yellow: tap at each line
-constexpr int kPinControlButton = 1;  // blue: mode / cancel / clear
+constexpr int kPinTimingButton = 2;       // yellow: tap at each line
+constexpr int kPinControlButton = 1;      // blue: mode / cancel / clear
 constexpr bool kButtonsActiveLow = true;  // board has pull-ups; pressed = LOW
 
 // true  = timestamp the yellow button in a GPIO interrupt (sub-millisecond).
@@ -36,14 +36,15 @@ constexpr bool kUseInterruptTiming = true;
 
 // --- Input timing -----------------------------------------------------------
 constexpr Millis kControlDebounceMs = 25;
-constexpr Millis kControlHoldMs = 800;            // blue long-press threshold
-constexpr Micros kTimingIsrLockoutUs = 150000;    // ignore edges for 150 ms after a press (bounce)
-constexpr Micros kMinTapGapUs = 400000;           // ignore any tap < 0.4 s after the previous one
+constexpr Millis kControlHoldMs = 800;          // blue long-press threshold
+constexpr Micros kTimingIsrLockoutUs = 150000;  // ignore edges for 150 ms after a press (bounce)
+constexpr Micros kMinTapGapUs = 400000;         // ignore any tap < 0.4 s after the previous one
 
 // --- Timing profiles ----------------------------------------------------------
 // Order here = order the blue button cycles through.
 // min/max are sanity windows: taps faster than min are ignored, and a run with
 // no tap for longer than max times out.
+// clang-format off
 constexpr TimingProfile kProfiles[] = {
     {"Split", "SPLIT", 2,
      {"BACK LINE", "NEAR HOG"},
@@ -55,6 +56,7 @@ constexpr TimingProfile kProfiles[] = {
      {"BACK LINE", "NEAR HOG", "FAR HOG"},
      {{IntervalKind::Split, 1.5f, 8.0f}, {IntervalKind::HogToHog, 5.0f, 35.0f}}},
 };
+// clang-format on
 constexpr uint8_t kProfileCount = sizeof(kProfiles) / sizeof(kProfiles[0]);
 
 // --- Weight bands -------------------------------------------------------------
@@ -63,6 +65,7 @@ constexpr uint8_t kProfileCount = sizeof(kProfiles) / sizeof(kProfiles[0]);
 // Reference point: on nominal ice a ~3.8 s split corresponds to a ~14.3 s
 // hog-to-hog draw; on very keen (Olympic) ice draws run ~4.1 s / ~15 s.
 // Bands must be in ascending maxSeconds order; last band is open-ended.
+// clang-format off
 constexpr Band kSplitBands[] = {
     {2.90f, "PEEL", rgb565(255, 60, 60)},
     {3.20f, "TAKEOUT", rgb565(255, 140, 0)},
@@ -71,6 +74,7 @@ constexpr Band kSplitBands[] = {
     {4.15f, "DRAW", rgb565(60, 220, 120)},
     {kBandOpenEnd, "GUARD", rgb565(80, 190, 255)},
 };
+// clang-format on
 
 // Hog-to-hog bands are intentionally empty for now: the time itself ("ice is
 // running 14") is what players use. Add bands here once calibrated.
@@ -79,33 +83,33 @@ constexpr Band kHogToHogBands[] = {
 };
 
 // --- History ------------------------------------------------------------------
-constexpr uint8_t kHistorySize = 32;    // measurements kept in RAM
-constexpr uint8_t kHistoryShown = 3;    // previous results shown under the main time
+constexpr uint8_t kHistorySize = 32;  // measurements kept in RAM
+constexpr uint8_t kHistoryShown = 3;  // previous results shown under the main time
 
 // --- Feedback -----------------------------------------------------------------
 // You are watching the stone, not the screen, so every accepted tap buzzes.
-constexpr uint8_t kHapticStrength = 200;   // 0-255
-constexpr Millis kHapticTapMs = 35;        // tap accepted
-constexpr Millis kHapticResultMs = 70;     // result ready (played twice)
+constexpr uint8_t kHapticStrength = 200;  // 0-255
+constexpr Millis kHapticTapMs = 35;       // tap accepted
+constexpr Millis kHapticResultMs = 70;    // result ready (played twice)
 constexpr Millis kHapticGapMs = 80;
-constexpr Millis kHapticCancelMs = 250;    // cancel / timeout
+constexpr Millis kHapticCancelMs = 250;  // cancel / timeout
 
-constexpr bool kBeepEnabled = false;       // speaker off by default (it's loud on the ice)
+constexpr bool kBeepEnabled = false;  // speaker off by default (it's loud on the ice)
 constexpr uint16_t kBeepHz = 3000;
 constexpr Millis kBeepMs = 30;
-constexpr uint8_t kSpeakerVolume = 96;     // 0-255
+constexpr uint8_t kSpeakerVolume = 96;  // 0-255
 
 // --- Display / power ----------------------------------------------------------
-constexpr Millis kFrameIntervalMs = 33;          // ~30 fps cap while values change
+constexpr Millis kFrameIntervalMs = 33;  // ~30 fps cap while values change
 constexpr Millis kBatteryPollMs = 5000;
-constexpr uint8_t kBrightnessActive = 180;       // 0-255
+constexpr uint8_t kBrightnessActive = 180;  // 0-255
 constexpr uint8_t kBrightnessDim = 30;
 
 // --- Power saving -------------------------------------------------------------
 // Idle = no button input and no timing run in progress. Stages (0 = disabled):
 //   dim -> light sleep (screen off, instant resume) -> deep sleep (reboot on wake)
 // For bench testing, try 20 s / 40 s / 80 s here.
-constexpr Millis kDimAfterMs = 60UL * 1000UL;           // 1 min
+constexpr Millis kDimAfterMs = 60UL * 1000UL;                // 1 min
 constexpr Millis kLightSleepAfterMs = 10UL * 60UL * 1000UL;  // 10 min
 constexpr Millis kDeepSleepAfterMs = 30UL * 60UL * 1000UL;   // 30 min
 
@@ -117,7 +121,7 @@ constexpr bool kLightSleepWakeTapCounts = true;
 // false = never sleep while USB power is present (handy while developing:
 // sleeping drops the serial monitor). Dimming still happens.
 constexpr bool kSleepOnUsbPower = true;
-constexpr int kUsbPresentMillivolts = 4000;     // VBUS above this = on USB power
+constexpr int kUsbPresentMillivolts = 4000;  // VBUS above this = on USB power
 
 }  // namespace config
 }  // namespace curl

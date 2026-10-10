@@ -19,7 +19,7 @@ struct ViewInputs {
     Micros now;
     int8_t batteryPercent;  // -1 = unknown
     bool charging;
-    bool timedOut;          // last run timed out with nothing captured
+    bool timedOut;  // last run timed out with nothing captured
 };
 
 void buildView(const ViewInputs& in, ViewModel& out);

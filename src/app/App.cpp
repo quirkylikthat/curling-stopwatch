@@ -210,7 +210,8 @@ void App::updateDisplay(Micros now, Millis nowMs) {
     lastFrameMs_ = nowMs;
 
     ViewModel vm;
-    buildView({timer_, profile(), history_, now, hw_.batteryPercent(), hw_.isCharging(), timedOut_}, vm);
+    buildView({timer_, profile(), history_, now, hw_.batteryPercent(), hw_.isCharging(), timedOut_},
+              vm);
     if (haveView_ && vm == lastView_) return;  // nothing changed: skip the ~20 ms push
 
     renderer_.render(vm);

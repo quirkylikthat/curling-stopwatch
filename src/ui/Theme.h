@@ -18,7 +18,7 @@ constexpr uint16_t kBackground = 0x0000;
 constexpr uint16_t kText = rgb565(240, 240, 240);
 constexpr uint16_t kTextDim = rgb565(120, 120, 120);
 constexpr uint16_t kTextFaint = rgb565(70, 70, 70);
-constexpr uint16_t kRunning = rgb565(255, 200, 40);   // live value colour
+constexpr uint16_t kRunning = rgb565(255, 200, 40);  // live value colour
 constexpr uint16_t kAccent = rgb565(80, 190, 255);
 constexpr uint16_t kWarn = rgb565(255, 90, 60);
 constexpr uint16_t kBattOk = rgb565(60, 200, 90);
@@ -36,13 +36,13 @@ constexpr int kBatteryR1 = 230;
 constexpr float kBatteryArcStart = 225.0f;  // degrees, 0 = 3 o'clock, clockwise
 constexpr float kBatteryArcSpan = 90.0f;
 
-constexpr int kModeY = 70;       // "SPLIT"
-constexpr int kDotsY = 104;      // gate progress dots
-constexpr int kHintY = 142;      // "NEXT: NEAR HOG" (or the main readout's caption)
-constexpr int kMainY = 222;      // big number
-constexpr int kBandY = 296;      // "DRAW"
-constexpr int kSecondaryY = 342; // "SPLIT 3.82 DRAW" on 3-gate profiles
-constexpr int kHistoryY = 392;   // previous results
+constexpr int kModeY = 70;        // "SPLIT"
+constexpr int kDotsY = 104;       // gate progress dots
+constexpr int kHintY = 142;       // "NEXT: NEAR HOG" (or the main readout's caption)
+constexpr int kMainY = 222;       // big number
+constexpr int kBandY = 296;       // "DRAW"
+constexpr int kSecondaryY = 342;  // "SPLIT 3.82 DRAW" on 3-gate profiles
+constexpr int kHistoryY = 392;    // previous results
 
 constexpr float kMainTextSize = 2.3f;  // Font7 (7-segment) is 48 px tall at size 1
 

@@ -46,25 +46,25 @@ inline int runAll() {
 
 }  // namespace tf
 
-#define TEST(name)                                         \
-    static void name();                                    \
-    static tf::Registrar name##_registrar(#name, &name);   \
+#define TEST(name)                                       \
+    static void name();                                  \
+    static tf::Registrar name##_registrar(#name, &name); \
     static void name()
 
-#define CHECK(cond)                                                              \
-    do {                                                                         \
-        if (!(cond)) {                                                           \
+#define CHECK(cond)                                                                  \
+    do {                                                                             \
+        if (!(cond)) {                                                               \
             std::printf("    %s:%d: CHECK(%s) failed\n", __FILE__, __LINE__, #cond); \
-            ++tf::failures();                                                    \
-        }                                                                        \
+            ++tf::failures();                                                        \
+        }                                                                            \
     } while (0)
 
-#define CHECK_EQ(a, b)                                                                     \
-    do {                                                                                   \
-        if (!((a) == (b))) {                                                               \
+#define CHECK_EQ(a, b)                                                                       \
+    do {                                                                                     \
+        if (!((a) == (b))) {                                                                 \
             std::printf("    %s:%d: CHECK_EQ(%s, %s) failed\n", __FILE__, __LINE__, #a, #b); \
-            ++tf::failures();                                                              \
-        }                                                                                  \
+            ++tf::failures();                                                                \
+        }                                                                                    \
     } while (0)
 
 #define CHECK_NEAR(a, b, eps)                                                                   \
@@ -76,11 +76,11 @@ inline int runAll() {
         }                                                                                       \
     } while (0)
 
-#define CHECK_STR(a, b)                                                                       \
-    do {                                                                                      \
-        if (std::strcmp((a), (b)) != 0) {                                                     \
+#define CHECK_STR(a, b)                                                                        \
+    do {                                                                                       \
+        if (std::strcmp((a), (b)) != 0) {                                                      \
             std::printf("    %s:%d: CHECK_STR failed: \"%s\" vs \"%s\"\n", __FILE__, __LINE__, \
-                        (a), (b));                                                            \
-            ++tf::failures();                                                                 \
-        }                                                                                     \
+                        (a), (b));                                                             \
+            ++tf::failures();                                                                  \
+        }                                                                                      \
     } while (0)

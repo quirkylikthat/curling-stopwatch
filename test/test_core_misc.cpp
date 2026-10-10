@@ -60,9 +60,7 @@ TEST(split_band_boundaries) {
     CHECK_STR(classify(config::kSplitBands, 99.0f)->label, "GUARD");
 }
 
-TEST(classify_empty_table_returns_null) {
-    CHECK(classify(nullptr, 0, 3.0f) == nullptr);
-}
+TEST(classify_empty_table_returns_null) { CHECK(classify(nullptr, 0, 3.0f) == nullptr); }
 
 TEST(split_bands_are_ascending) {
     const size_t n = sizeof(config::kSplitBands) / sizeof(config::kSplitBands[0]);

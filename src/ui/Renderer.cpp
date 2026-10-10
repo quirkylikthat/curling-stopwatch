@@ -79,10 +79,11 @@ void Renderer::drawBattery(LovyanGFX& g, const ViewModel& vm) {
               kBatteryArcStart + kBatteryArcSpan, kTrack);
     if (vm.batteryPercent < 0) return;
     const float span = kBatteryArcSpan * vm.batteryPercent / 100.0f;
-    const uint16_t color = vm.charging ? kBattCharging : (vm.batteryPercent <= 15 ? kBattLow : kBattOk);
+    const uint16_t color =
+        vm.charging ? kBattCharging : (vm.batteryPercent <= 15 ? kBattLow : kBattOk);
     if (span > 0.5f) {
-        g.fillArc(kCenter, kCenter, kBatteryR0, kBatteryR1, kBatteryArcStart, kBatteryArcStart + span,
-                  color);
+        g.fillArc(kCenter, kCenter, kBatteryR0, kBatteryR1, kBatteryArcStart,
+                  kBatteryArcStart + span, color);
     }
 }
 
@@ -93,7 +94,8 @@ void Renderer::drawDots(LovyanGFX& g, const ViewModel& vm) {
     for (uint8_t i = 0; i < vm.gateCount; ++i) {
         const int x = x0 + i * kSpacing;
         if (i < vm.gatesDone) {
-            g.fillCircle(x, kDotsY, kRadius, vm.screen == ViewModel::Screen::Running ? kRunning : kAccent);
+            g.fillCircle(x, kDotsY, kRadius,
+                         vm.screen == ViewModel::Screen::Running ? kRunning : kAccent);
         } else {
             g.drawCircle(x, kDotsY, kRadius, kTextFaint);
         }
@@ -120,7 +122,8 @@ void Renderer::drawMain(LovyanGFX& g, const ViewModel& vm) {
 void Renderer::drawSecondary(LovyanGFX& g, const ViewModel& vm) {
     if (!vm.hasSecondary) return;
     char line[40];
-    snprintf(line, sizeof(line), "%s %s %s", vm.secondary.caption, vm.secondary.time, vm.secondary.band);
+    snprintf(line, sizeof(line), "%s %s %s", vm.secondary.caption, vm.secondary.time,
+             vm.secondary.band);
     g.setFont(&fonts::FreeSansBold12pt7b);
     g.setTextColor(vm.secondary.band[0] ? vm.secondary.bandColor : kText);
     g.drawString(line, kCenter, kSecondaryY);

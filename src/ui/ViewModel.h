@@ -22,13 +22,13 @@ struct ViewModel {
     enum class Screen : uint8_t { Ready, Running, Result };
 
     Screen screen;
-    char modeName[16];   // "SPLIT", "HOG-HOG", ...
-    char hint[24];       // "TAP AT BACK LINE", "NEXT: NEAR HOG", "TIMED OUT"
-    uint8_t gateCount;   // progress dots
+    char modeName[16];  // "SPLIT", "HOG-HOG", ...
+    char hint[24];      // "TAP AT BACK LINE", "NEXT: NEAR HOG", "TIMED OUT"
+    uint8_t gateCount;  // progress dots
     uint8_t gatesDone;
 
-    Readout main;        // big number
-    bool hasSecondary;   // 3-gate profiles: the other interval
+    Readout main;       // big number
+    bool hasSecondary;  // 3-gate profiles: the other interval
     Readout secondary;
 
     uint8_t historyCount;
