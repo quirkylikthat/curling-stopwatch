@@ -105,7 +105,7 @@ TEST(menu_navigation_and_back) {
     CHECK(m.page() == Menu::Page::Bands);
     CHECK(m.back() == Menu::Action::Navigated);  // blue click
     CHECK(m.page() == Menu::Page::Settings);
-    CHECK(tapRect(m, kBack, s, Menu::Action::Navigated));
+    CHECK(tapRect(m, kBack, s, Menu::Action::Navigated));  // the drawn button
     CHECK(m.page() == Menu::Page::Main);
     CHECK(m.back() == Menu::Action::Exit);
     CHECK(tapRect(m, kMainItems[1], s, Menu::Action::Navigated));
@@ -133,29 +133,51 @@ TEST(menu_brightness_slider) {
     tapRect(m, kMainItems[0], s, Menu::Action::Navigated);
     tapRect(m, kSettingsItems[0], s, Menu::Action::Navigated);
     CHECK(m.page() == Menu::Page::Brightness);
-    CHECK(m.drag(kSliderX1 + 20, kSliderY, s) == Menu::Action::BrightnessChanged);
+    // Landing on the track jumps the knob there; dragging follows.
+    CHECK(m.down(kSliderX1 + 20, kSliderY, s) == Menu::Action::BrightnessChanged);
     CHECK_EQ(s.brightness, 255);
     CHECK(m.drag(kSliderX0 - 20, kSliderY + 30, s) == Menu::Action::BrightnessChanged);
     CHECK_EQ(s.brightness, settings::kBrightnessMin);
     CHECK(m.drag(kSliderX0 - 20, kSliderY, s) == Menu::Action::None);  // unchanged
     CHECK(m.drag(kCenter, 60, s) == Menu::Action::None);               // off the slider
-    m.tap((kSliderX0 + kSliderX1) / 2, kSliderY, s);
+    m.down((kSliderX0 + kSliderX1) / 2, kSliderY, s);
     CHECK(s.brightness > 130 && s.brightness < 145);  // ~midway
-    // Knob position round-trips.
+    CHECK(m.tap((kSliderX0 + kSliderX1) / 2, kSliderY, s) ==
+          Menu::Action::None);  // no double-apply
     CHECK(brightnessAt(sliderX(200)) - 200 <= 1);
 }
+
+namespace {
+void openBands(Menu& m, UserSettings& s) {
+    m.open();
+    tapRect(m, kMainItems[0], s, Menu::Action::Navigated);
+    tapRect(m, kSettingsItems[1], s, Menu::Action::Navigated);
+}
+// Scroll the band list by dragging (finger moves up by `dy` px).
+void scrollBy(Menu& m, UserSettings& s, int dy) {
+    const int y0 = (kBandViewTop + kBandViewBottom) / 2;
+    m.down(kCenter - 120, y0, s);
+    m.drag(kCenter - 120, y0 - dy, s);
+}
+}  // namespace
 
 TEST(menu_band_buttons_edit_the_right_limit) {
     Menu m;
     UserSettings s = def();
-    m.open();
-    tapRect(m, kMainItems[0], s, Menu::Action::Navigated);
-    tapRect(m, kSettingsItems[1], s, Menu::Action::Navigated);
-    CHECK(tapRect(m, bandPlus(4), s, Menu::Action::SettingsChanged));  // DRAW
-    CHECK_EQ(s.splitLimitsCs[4], 420);
-    CHECK(tapRect(m, bandMinus(0), s, Menu::Action::SettingsChanged));  // PEEL
+    openBands(m, s);
+    CHECK(m.page() == Menu::Page::Bands);
+    CHECK_EQ(m.bandsScroll(), 0);
+    CHECK(tapRect(m, bandMinus(0, 0), s, Menu::Action::SettingsChanged));  // PEEL
     CHECK_EQ(s.splitLimitsCs[0], 285);
-    CHECK(tapRect(m, bandPlus(kSplitLimitCount), s, Menu::Action::SettingsChanged));  // shift
+    CHECK(tapRect(m, bandPlus(1, 0), s, Menu::Action::SettingsChanged));  // TAKEOUT
+    CHECK_EQ(s.splitLimitsCs[1], 325);
+    // DRAW and SHIFT ALL are below the fold: scroll to the bottom first.
+    scrollBy(m, s, 1000);
+    CHECK_EQ(m.bandsScroll(), kBandMaxScroll);
+    const int sc = m.bandsScroll();
+    CHECK(tapRect(m, bandPlus(4, sc), s, Menu::Action::SettingsChanged));  // DRAW
+    CHECK_EQ(s.splitLimitsCs[4], 420);
+    CHECK(tapRect(m, bandPlus(kSplitLimitCount, sc), s, Menu::Action::SettingsChanged));  // shift
     CHECK_EQ(s.splitLimitsCs[0], 290);
     CHECK_EQ(s.splitLimitsCs[4], 425);
     CHECK(tapRect(m, kBandsReset, s, Menu::Action::SettingsChanged));
@@ -165,13 +187,58 @@ TEST(menu_band_buttons_edit_the_right_limit) {
     CHECK(m.page() == Menu::Page::Settings);
 }
 
+TEST(menu_band_list_scrolling) {
+    Menu m;
+    UserSettings s = def();
+    openBands(m, s);
+    CHECK(kBandMaxScroll > 0);  // the list is taller than its viewport
+    // A wobble within the tap slop doesn't scroll.
+    scrollBy(m, s, config::kTouchTapSlopPx);
+    CHECK_EQ(m.bandsScroll(), 0);
+    // A real drag does, 1:1 with the finger, clamped at both ends.
+    scrollBy(m, s, 60);
+    CHECK_EQ(m.bandsScroll(), 60);
+    scrollBy(m, s, -1000);
+    CHECK_EQ(m.bandsScroll(), 0);
+    // A button scrolled out of the viewport can't be hit through the header.
+    scrollBy(m, s, 1000);
+    const Rect peelMinus = bandMinus(0, m.bandsScroll());
+    CHECK(peelMinus.cy < kBandViewTop);
+    CHECK(m.tap(peelMinus.cx, peelMinus.cy, s) == Menu::Action::None);
+    CHECK_EQ(s.splitLimitsCs[0], 290);
+    // Re-entering the page starts at the top.
+    m.back();
+    tapRect(m, kSettingsItems[1], s, Menu::Action::Navigated);
+    CHECK_EQ(m.bandsScroll(), 0);
+}
+
+TEST(menu_back_hit_zone_is_forgiving) {
+    Menu m;
+    UserSettings s = def();
+    m.open();
+    tapRect(m, kMainItems[0], s, Menu::Action::Navigated);  // Settings page
+    // Below the drawn button, right down to the screen edge, still counts.
+    CHECK(m.tap(kCenter, kBack.cy + kBack.h / 2 + 30, s) == Menu::Action::Navigated);
+    CHECK(m.page() == Menu::Page::Main);
+    tapRect(m, kMainItems[0], s, Menu::Action::Navigated);
+    CHECK(m.tap(kBack.left() - 20, kBack.cy, s) == Menu::Action::Navigated);  // a bit wide
+    // Main items accept taps slightly outside their drawn edge too.
+    CHECK(m.tap(kCenter, kMainItems[1].top() - 5, s) == Menu::Action::Navigated);
+    CHECK(m.page() == Menu::Page::Export);
+}
+
 // ---- Layout -----------------------------------------------------------------
 
 namespace {
-bool insideCircle(const Rect& r) {
-    const int R = 230;  // visible radius is 233; keep a small margin
+// Corners of r, clipped vertically to [clipTop, clipBottom], all inside the
+// visible circle (radius 233; keep a small margin).
+bool insideCircle(const Rect& r, int clipTop = 0, int clipBottom = kSize) {
+    const int R = 230;
+    const int top = r.top() > clipTop ? r.top() : clipTop;
+    const int bottom = r.top() + r.h < clipBottom ? r.top() + r.h : clipBottom;
+    if (top >= bottom) return true;  // fully clipped away
     const int xs[2] = {r.left(), r.left() + r.w};
-    const int ys[2] = {r.top(), r.top() + r.h};
+    const int ys[2] = {top, bottom};
     for (int x : xs) {
         for (int y : ys) {
             const int dx = x - kCenter, dy = y - kCenter;
@@ -179,6 +246,9 @@ bool insideCircle(const Rect& r) {
         }
     }
     return true;
+}
+Rect padded(const Rect& r, int pad) {
+    return {r.cx, r.cy, static_cast<int16_t>(r.w + 2 * pad), static_cast<int16_t>(r.h + 2 * pad)};
 }
 bool overlap(const Rect& a, const Rect& b) {
     return a.left() < b.left() + b.w && b.left() < a.left() + a.w && a.top() < b.top() + b.h &&
@@ -195,12 +265,30 @@ TEST(menu_layout_targets_fit_on_round_screen_without_overlap) {
     CHECK(insideCircle(kConfirmClear));
     CHECK(insideCircle(kBandsReset));
     CHECK(insideCircle(kBandsBack));
-    for (size_t row = 0; row <= kSplitLimitCount; ++row) {  // limits + SHIFT ALL
-        CHECK(insideCircle(bandMinus(row)));
-        CHECK(insideCircle(bandPlus(row)));
-        CHECK(!overlap(bandMinus(row), bandPlus(row)));
-        if (row > 0) CHECK(!overlap(bandPlus(row - 1), bandPlus(row)));
+    // Hit zones (with padding) never overlap a neighbour's.
+    CHECK(!overlap(padded(kMainItems[0], kItemPad), padded(kMainItems[1], kItemPad)));
+    CHECK(!overlap(padded(kMainItems[1], kItemPad), padded(kMainItems[2], kItemPad)));
+    CHECK(!overlap(padded(kMainItems[2], kItemPad), kBackHit));
+    CHECK(!overlap(padded(kSettingsItems[1], kItemPad), kBackHit));
+    CHECK(!overlap(kSliderHit, kBackHit));
+    CHECK(!overlap(padded(kConfirmCancel, kConfirmPad), padded(kConfirmClear, kConfirmPad)));
+    CHECK(!overlap(kBandsResetHit, kBandsBackHit));
+    CHECK(kBandsResetHit.top() >= kBandViewBottom);  // footer is below the list
+    // Every band row, at every scroll position: buttons visible part fits the
+    // circle, and the padded -/+ zones of a row / neighbouring rows don't overlap.
+    for (int scroll = 0; scroll <= kBandMaxScroll; scroll += 2) {
+        for (size_t row = 0; row < kBandRows; ++row) {
+            CHECK(insideCircle(bandMinus(row, scroll), kBandViewTop, kBandViewBottom));
+            CHECK(insideCircle(bandPlus(row, scroll), kBandViewTop, kBandViewBottom));
+            CHECK(!overlap(padded(bandMinus(row, scroll), kBandBtnPad),
+                           padded(bandPlus(row, scroll), kBandBtnPad)));
+            if (row > 0) {
+                CHECK(!overlap(padded(bandPlus(row - 1, scroll), kBandBtnPad),
+                               padded(bandPlus(row, scroll), kBandBtnPad)));
+            }
+        }
     }
-    CHECK(!overlap(bandPlus(kSplitLimitCount), kBandsBack));
-    CHECK(!overlap(kMainItems[2], kBack));
+    // Buttons are big enough for a fingertip (>= 48 x 48 px drawn, ~4.5 mm).
+    CHECK(kBandBtnW >= 48);
+    CHECK(kBandBtnH >= 48);
 }

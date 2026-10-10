@@ -43,6 +43,17 @@ constexpr Millis kControlDoubleClickMs = 300;
 constexpr Micros kTimingIsrLockoutUs = 150000;  // ignore edges for 150 ms after a press (bounce)
 constexpr Micros kMinTapGapUs = 400000;         // ignore any tap < 0.4 s after the previous one
 
+// --- Touch (menu only) --------------------------------------------------------
+// A touch counts as a tap if the finger stays within this many px of where it
+// landed (the tap is placed where it landed); move further and it's a drag /
+// scroll instead. M5Unified's own 8 px "flick" limit was too strict near the
+// round edge, so we don't use its click detection.
+constexpr int kTouchTapSlopPx = 20;
+// Added to every touch coordinate, if taps turn out to land consistently
+// off-target (the boot log / "[menu] tap x,y" lines show where they land).
+constexpr int kTouchOffsetX = 0;
+constexpr int kTouchOffsetY = 0;
+
 // --- Timing profiles ----------------------------------------------------------
 // Order here = order the blue button cycles through.
 // min/max are sanity windows: taps faster than min are ignored, and a run with

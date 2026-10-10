@@ -77,12 +77,13 @@ void fillHistoryScreen(ViewModel& out, const History& history, const Band* split
 
 static_assert(kSplitLimitCount <= MenuView::kMaxLimits, "too many split limits for MenuView");
 
-void fillMenu(ViewModel& out, MenuPage page, const UserSettings& user, const History& history) {
+void fillMenu(ViewModel& out, const Menu& menu, const UserSettings& user, const History& history) {
     out.screen = ViewModel::Screen::Menu;
     out.gateCount = 0;
     out.modeName[0] = '\0';  // each menu page draws its own title
     MenuView& m = out.menu;
-    m.page = page;
+    m.page = menu.page();
+    m.bandsScroll = static_cast<int16_t>(menu.bandsScroll());
     m.brightness = user.brightness;
     m.brightnessPercent = settings::brightnessPercent(user.brightness);
     m.limitCount = static_cast<uint8_t>(kSplitLimitCount);
@@ -124,8 +125,8 @@ void buildView(const ViewInputs& in, ViewModel& out) {
     out.batteryPercent = in.batteryPercent;
     out.charging = in.charging;
 
-    if (in.menuPage && in.user) {
-        fillMenu(out, *in.menuPage, *in.user, in.history);
+    if (in.menu && in.user) {
+        fillMenu(out, *in.menu, *in.user, in.history);
         return;
     }
 

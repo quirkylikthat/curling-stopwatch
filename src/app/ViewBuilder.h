@@ -7,6 +7,7 @@
 #include "../core/SequenceTimer.h"
 #include "../core/Types.h"
 #include "../ui/ViewModel.h"
+#include "Menu.h"
 #include "UserSettings.h"
 
 namespace curl {
@@ -25,8 +26,8 @@ struct ViewInputs {
     // Split bands in use (kSplitBandCount entries, from the user's settings);
     // nullptr = the Config.h defaults.
     const Band* splitBands;
-    // Menu page to show, or nullptr = not in the menu. `user` is required then.
-    const MenuPage* menuPage;
+    // The menu to show, or nullptr = not in the menu. `user` is required then.
+    const Menu* menu;
     const UserSettings* user;
 };
 

@@ -1,4 +1,5 @@
 #include "../src/app/ViewBuilder.h"
+#include "../src/ui/MenuLayout.h"
 #include "TestFramework.h"
 
 using namespace curl;
@@ -242,8 +243,11 @@ TEST(view_menu_page) {
     UserSettings user = settings::defaults();
     settings::setBrightness(user, 128);
     ViewModel vm;
-    const MenuPage page = MenuPage::Bands;
-    buildView({t, config::kProfiles[0], h, s(10), 80, false, false, false, nullptr, &page, &user},
+    Menu menu;
+    menu.open();
+    menu.tap(menu_layout::kMainItems[0].cx, menu_layout::kMainItems[0].cy, user);  // Settings
+    menu.tap(menu_layout::kSettingsItems[1].cx, menu_layout::kSettingsItems[1].cy, user);  // Bands
+    buildView({t, config::kProfiles[0], h, s(10), 80, false, false, false, nullptr, &menu, &user},
               vm);
     CHECK(vm.screen == ViewModel::Screen::Menu);
     CHECK(vm.menu.page == MenuPage::Bands);
@@ -257,7 +261,7 @@ TEST(view_menu_page) {
     // A change the user makes shows up (and triggers a redraw).
     ViewModel before = vm;
     settings::adjustLimit(user, 4, +5);
-    buildView({t, config::kProfiles[0], h, s(10), 80, false, false, false, nullptr, &page, &user},
+    buildView({t, config::kProfiles[0], h, s(10), 80, false, false, false, nullptr, &menu, &user},
               vm);
     CHECK(vm != before);
 }

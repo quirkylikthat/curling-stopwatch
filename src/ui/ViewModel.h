@@ -37,6 +37,7 @@ struct MenuView {
     uint8_t limitCount;
     uint16_t limitsCs[kMaxLimits];  // split-band upper limits, 1/100 s
     uint8_t historyCount;           // for "clear N results?"
+    int16_t bandsScroll;            // px the split-band list is scrolled down
 };
 
 struct ViewModel {

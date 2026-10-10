@@ -70,8 +70,9 @@ enum class InputType : uint8_t {
     ControlClick,        // blue button short press
     ControlHold,         // blue button long press (2 s: opens / closes the menu)
     ControlDoubleClick,  // blue button double press (toggles the history screen)
-    TouchTap,            // finger lifted without dragging, at (x, y)
-    TouchDrag,           // finger down or moving, at (x, y)
+    TouchDown,           // finger landed at (x, y)
+    TouchDrag,           // finger moved to (x, y)
+    TouchTap,            // finger lifted near where it landed; (x, y) = landing point
 };
 
 struct InputEvent {

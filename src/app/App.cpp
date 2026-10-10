@@ -143,12 +143,19 @@ void App::handle(const InputEvent& e, Millis nowMs) {
             haptics_.tap(nowMs);
             break;
 
-        case InputType::TouchTap:
-            if (view_ == View::Menu) onMenuAction(menu_.tap(e.x, e.y, user_), nowMs);
-            break;  // touch is ignored outside the menu (in-game screens)
-
+        // Touch is ignored outside the menu (in-game screens).
+        case InputType::TouchDown:
+            if (view_ == View::Menu) onMenuAction(menu_.down(e.x, e.y, user_), nowMs);
+            break;
         case InputType::TouchDrag:
             if (view_ == View::Menu) onMenuAction(menu_.drag(e.x, e.y, user_), nowMs);
+            break;
+        case InputType::TouchTap:
+            if (view_ == View::Menu) {
+                // Logged so off-target taps can be diagnosed (see kTouchOffsetX/Y).
+                Serial.printf("[menu] tap %d,%d\n", e.x, e.y);
+                onMenuAction(menu_.tap(e.x, e.y, user_), nowMs);
+            }
             break;
     }
 }
@@ -156,6 +163,7 @@ void App::handle(const InputEvent& e, Millis nowMs) {
 void App::onMenuAction(Menu::Action a, Millis nowMs) {
     switch (a) {
         case Menu::Action::None:
+        case Menu::Action::Scrolled:  // the redraw picks it up
             return;
         case Menu::Action::Navigated:
             saveUserSettingsIfChanged();  // leaving an editor page
@@ -312,10 +320,9 @@ void App::updateDisplay(Micros now, Millis nowMs) {
     lastFrameMs_ = nowMs;
 
     ViewModel vm;
-    const Menu::Page page = menu_.page();
     buildView(
         {timer_, profile(), history_, now, hw_.batteryPercent(), hw_.isCharging(), timedOut_,
-         view_ == View::History, splitBands_.bands, view_ == View::Menu ? &page : nullptr, &user_},
+         view_ == View::History, splitBands_.bands, view_ == View::Menu ? &menu_ : nullptr, &user_},
         vm);
     if (haveView_ && vm == lastView_) return;  // nothing changed: skip the ~20 ms push
 

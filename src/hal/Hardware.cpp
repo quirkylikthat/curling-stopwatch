@@ -143,20 +143,35 @@ void Hardware::readBattery() {
 }
 
 void Hardware::pollTouch() {
-    // M5.update() already read the CST820. Report a tap when a finger lifts
-    // without having dragged, and a drag sample whenever a held finger moves
-    // (or first lands) -- the slider follows those.
+    // M5.update() already read the CST820. We do our own gesture logic:
+    //   landing  -> TouchDown (the slider jumps there; a scroll anchors there)
+    //   moving   -> TouchDrag (slider / scrolling follow it)
+    //   lifting  -> TouchTap at the LANDING point, but only if the finger never
+    //              strayed more than kTouchTapSlopPx (otherwise it was a drag).
+    // M5Unified's wasClicked() was too strict: an 8 px wobble while lifting
+    // (common near the round edge, e.g. on BACK) turned a tap into a "flick".
     if (!M5.Touch.isEnabled()) return;
     const auto t = M5.Touch.getDetail();
-    if (t.wasClicked()) fifo_.push({InputType::TouchTap, nowMicros(), t.x, t.y});
-    if (t.isPressed()) {
-        if (t.wasPressed() || t.x != lastTouchX_ || t.y != lastTouchY_) {
-            fifo_.push({InputType::TouchDrag, nowMicros(), t.x, t.y});
-            lastTouchX_ = t.x;
-            lastTouchY_ = t.y;
-        }
-    } else {
-        lastTouchX_ = lastTouchY_ = -1;
+    const int16_t x = static_cast<int16_t>(t.x + config::kTouchOffsetX);
+    const int16_t y = static_cast<int16_t>(t.y + config::kTouchOffsetY);
+
+    if (t.wasPressed()) {
+        touchDownX_ = lastTouchX_ = x;
+        touchDownY_ = lastTouchY_ = y;
+        touchMaxMove_ = 0;
+        fifo_.push({InputType::TouchDown, nowMicros(), x, y});
+    } else if (t.isPressed() && (x != lastTouchX_ || y != lastTouchY_)) {
+        lastTouchX_ = x;
+        lastTouchY_ = y;
+        const int dx = x > touchDownX_ ? x - touchDownX_ : touchDownX_ - x;
+        const int dy = y > touchDownY_ ? y - touchDownY_ : touchDownY_ - y;
+        const int moved = dx > dy ? dx : dy;
+        if (moved > touchMaxMove_) touchMaxMove_ = moved;
+        fifo_.push({InputType::TouchDrag, nowMicros(), x, y});
+    }
+
+    if (t.wasReleased() && touchMaxMove_ <= config::kTouchTapSlopPx) {
+        fifo_.push({InputType::TouchTap, nowMicros(), touchDownX_, touchDownY_});
     }
 }
 

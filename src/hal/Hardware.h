@@ -69,6 +69,9 @@ private:
 
     int16_t lastTouchX_ = -1;
     int16_t lastTouchY_ = -1;
+    int16_t touchDownX_ = -1;  // where the current touch landed
+    int16_t touchDownY_ = -1;
+    int touchMaxMove_ = 0;  // furthest it has strayed from there, px
 
     bool usbPower_ = false;
     bool wokeFromDeepSleep_ = false;

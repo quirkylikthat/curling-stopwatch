@@ -77,7 +77,7 @@ Nothing blocks. The only `delay()` is the 800 ms splash at boot.
 ### D2 — Pure "core" layer, unit-tested on the PC
 **Choice:** the timing state machine, debounce logic, band classification, formatting and screen-content logic have no Arduino or M5 includes. Time is always passed in as a parameter; core never reads a clock.
 **Why:**
-- Timing correctness is the product. A 70-test suite runs in under a second on a laptop (`make -C test`), with no flashing and no device.
+- Timing correctness is the product. A 72-test suite runs in under a second on a laptop (`make -C test`), with no flashing and no device.
 - M5Unified has broken APIs on this board before (0.2.21 changed the IO-expander API). Keeping device calls in `hal/` and `ui/` contains that churn.
 - Fake timestamps make edge cases trivial to test: bounce, timeouts, `millis()` wrap, ISR-vs-loop clock skew.
 
@@ -261,6 +261,31 @@ Navigation:
 - More settings are needed. Add a `UserSettings` field and bump `kUserVersion` in `App.cpp`.
 - Holding −/+ should auto-repeat.
 
+### D22 — Touch: our own tap detection, forgiving hit zones, scrolling band list
+**Problem (on-device, D21):**
+- **BACK often didn't register.** The drawn rectangle and the hit test already used the same constants, so it wasn't an alignment bug. The cause was M5Unified's `wasClicked()`: it only fires if the finger moves under **8 px** between landing and lifting. Any more and the touch becomes a "flick" and no click is reported. Near the bottom of the round glass, a fingertip rolls more than that.
+- **The split-bands controls were too cramped:** 52×36 px buttons on 42 px rows.
+
+**Choice:**
+- **Gestures are ours** (`Hardware::pollTouch`):
+  - **Down:** where the finger lands.
+  - **Drag:** where it moves to.
+  - **Tap:** reported on lift, *at the landing point*, if the finger stayed within `kTouchTapSlopPx` (20 px).
+- **Hit zones are larger than the drawn buttons** (`menu_layout`):
+  - Menu items get 7 px of padding.
+  - **BACK accepts anything from just above it down to the screen edge.**
+  - The Bands footer splits the bottom of the screen in two: RESET on the left, BACK on the right.
+  - Unit tests check that no two hit zones overlap.
+- **The split-bands page scrolls:**
+  - The title, column header and footer stay fixed. The list (5 limits + SHIFT ALL) scrolls in a clipped viewport between them.
+  - Rows are 62 px apart, and the −/+ buttons are 64×50 px.
+  - Dragging moves the list 1:1 once the finger passes the tap slop, so a tap never scrolls and a scroll never taps.
+  - There's a scrollbar on the right. Re-entering the page starts at the top.
+  - Tests check, at every scroll position, that each button's visible part fits the circle, and that a button scrolled under the header can't be hit.
+- **Diagnostics:** every menu tap is logged as `[menu] tap x,y`. `kTouchOffsetX/Y` in `Config.h` can correct a consistent offset if one shows up.
+
+**Revisit if:** taps still miss. Read the `[menu] tap` lines against the button positions in `ui/MenuLayout.h`; a steady offset means set `kTouchOffsetX/Y`, scattered taps mean widen the padding.
+
 ## 3. How to extend
 
 | You want to… | Do this |
@@ -319,6 +344,13 @@ The pins and polarity were confirmed from the M5Unified source. These can only b
     - **Clear history:** CANCEL should keep the history, and CLEAR should empty it.
     - **Yellow from any menu page:** the device should jump back and start timing.
     - **Touch during play:** touching the timing or history screen should do nothing.
+12. **Touch fixes (D22).**
+    - **BACK:** tap it on every page, including slightly low and slightly wide. It should work every time.
+    - **Split bands:** drag the list up and down. It should scroll smoothly, and rows should slide under the title and the RESET/BACK footer.
+      - A tap on −/+ shouldn't scroll.
+      - A drag that starts on a button shouldn't press it.
+      - The bottom rows (DRAW, SHIFT ALL) should be reachable.
+    - **If a target still misses:** note the `[menu] tap x,y` lines in the serial monitor.
 
 ## 5. Roadmap ideas (to discuss)
 

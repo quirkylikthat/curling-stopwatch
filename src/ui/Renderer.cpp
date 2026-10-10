@@ -187,8 +187,8 @@ void button(LovyanGFX& g, const Rect& r, const char* label, uint16_t fill = kBut
 
 void iconButton(LovyanGFX& g, const Rect& r, bool plus) {
     g.fillRoundRect(r.left(), r.top(), r.w, r.h, r.h / 3, kButton);
-    g.fillRect(r.cx - 9, r.cy - 2, 18, 4, kText);  // "-"
-    if (plus) g.fillRect(r.cx - 2, r.cy - 9, 4, 18, kText);
+    g.fillRect(r.cx - 11, r.cy - 2, 22, 4, kText);  // "-"
+    if (plus) g.fillRect(r.cx - 2, r.cy - 11, 4, 22, kText);
 }
 
 void cs(char* buf, size_t len, uint16_t centis) {
@@ -235,28 +235,43 @@ void Renderer::drawMenu(LovyanGFX& g, const MenuView& m) {
             g.setFont(&fonts::FreeSans9pt7b);
             g.setTextColor(kTextFaint);
             g.drawString("UP TO (S)", kBandValueX, kBandHeaderY);
+
+            // Scrolling list, clipped to its viewport (rows slide under the
+            // fixed header and footer).
+            const int scroll = m.bandsScroll;
+            g.setClipRect(0, kBandViewTop, kSize, kBandViewH);
             char value[8];
-            for (uint8_t row = 0; row < m.limitCount; ++row) {
-                const int y = bandRowY(row);
+            for (uint8_t row = 0; row <= m.limitCount; ++row) {  // limits + SHIFT ALL
+                const int y = bandRowY(row, scroll);
+                if (y + kBandRowPitch / 2 < kBandViewTop ||
+                    y - kBandRowPitch / 2 > kBandViewBottom) {
+                    continue;  // entirely off-screen
+                }
+                const bool isShift = row == m.limitCount;
                 g.setFont(&fonts::FreeSansBold12pt7b);
                 g.setTextDatum(middle_left);
-                g.setTextColor(config::kSplitBands[row].color);
-                g.drawString(config::kSplitBands[row].label, kBandLabelX, y);
+                g.setTextColor(isShift ? kTextDim : config::kSplitBands[row].color);
+                g.drawString(isShift ? "SHIFT ALL" : config::kSplitBands[row].label, kBandLabelX,
+                             y);
                 g.setTextDatum(middle_center);
-                g.setTextColor(kText);
-                cs(value, sizeof(value), m.limitsCs[row]);
-                g.drawString(value, kBandValueX, y);
-                iconButton(g, bandMinus(row), false);
-                iconButton(g, bandPlus(row), true);
+                if (!isShift) {
+                    g.setTextColor(kText);
+                    cs(value, sizeof(value), m.limitsCs[row]);
+                    g.drawString(value, kBandValueX, y);
+                }
+                iconButton(g, bandMinus(row, scroll), false);
+                iconButton(g, bandPlus(row, scroll), true);
             }
-            const int shiftY = bandRowY(m.limitCount);
-            g.setFont(&fonts::FreeSansBold12pt7b);
-            g.setTextDatum(middle_left);
-            g.setTextColor(kTextDim);
-            g.drawString("SHIFT ALL", kBandLabelX, shiftY);
-            g.setTextDatum(middle_center);
-            iconButton(g, bandMinus(m.limitCount), false);
-            iconButton(g, bandPlus(m.limitCount), true);
+            g.clearClipRect();
+
+            // Scrollbar: where the viewport is within the list.
+            if (kBandMaxScroll > 0) {
+                const int thumbH = kBandViewH * kBandViewH / kBandContentH;
+                const int thumbY = kBandViewTop + (kBandViewH - thumbH) * scroll / kBandMaxScroll;
+                g.fillRoundRect(kBandScrollbarX - 2, kBandViewTop, 4, kBandViewH, 2, kTrack);
+                g.fillRoundRect(kBandScrollbarX - 2, thumbY, 4, thumbH, 2, kTextDim);
+            }
+
             button(g, kBandsReset, "RESET");
             button(g, kBandsBack, "BACK");
             break;

@@ -1,28 +1,37 @@
 // MenuLayout: where every touch target on the menu pages sits. Shared by the
 // Renderer (draws them) and app/Menu (hit-tests taps), so the two can never
-// disagree. Pure data; positions checked against the 466 px round screen.
+// disagree. Pure data; positions checked against the 466 px round screen by
+// test/test_settings_menu.cpp.
+//
+// Each target has a drawn rectangle and a (larger) hit zone: fingers land a
+// little off, especially near the round edge, so taps are accepted with some
+// padding -- and BACK accepts anything from just above it to the screen edge.
 #pragma once
 
 #include <stddef.h>
 #include <stdint.h>
 
+#include "../Config.h"
 #include "Theme.h"
 
 namespace curl {
 namespace menu_layout {
 
 using theme::kCenter;
+using theme::kSize;
 
 struct Rect {
     int16_t cx, cy, w, h;  // centre + size
-    constexpr bool contains(int x, int y) const {
-        return x >= cx - w / 2 && x <= cx + w / 2 && y >= cy - h / 2 && y <= cy + h / 2;
+    constexpr bool contains(int x, int y, int pad = 0) const {
+        return x >= cx - w / 2 - pad && x <= cx + w / 2 + pad && y >= cy - h / 2 - pad &&
+               y <= cy + h / 2 + pad;
     }
     constexpr int left() const { return cx - w / 2; }
     constexpr int top() const { return cy - h / 2; }
 };
 
 constexpr int kTitleY = 70;
+constexpr int kItemPad = 7;  // hit padding for stacked menu items (they're 14 px apart)
 
 // Main menu: SETTINGS / EXPORT / CLEAR HISTORY, then BACK.
 constexpr Rect kMainItems[] = {
@@ -30,7 +39,11 @@ constexpr Rect kMainItems[] = {
     {kCenter, 222, 280, 56},
     {kCenter, 292, 280, 56},
 };
-constexpr Rect kBack = {kCenter, 378, 150, 50};  // every page except Bands
+
+// BACK (every page except Bands): drawn here ...
+constexpr Rect kBack = {kCenter, 378, 150, 50};
+// ... accepted anywhere from just above it down to the bottom edge.
+constexpr Rect kBackHit = {kCenter, 400, 210, 132};  // y 334..466
 
 // Settings: BRIGHTNESS / SPLIT BANDS, then BACK.
 constexpr Rect kSettingsItems[] = {
@@ -59,32 +72,50 @@ constexpr int brightnessAt(int x) {
 }
 constexpr int kBrightnessValueY = 170;
 
-// Split bands: one row per limit (label, value, -, +), then SHIFT ALL, then
-// RESET + BACK side by side. Rows are 42 px apart; buttons 52 x 36.
-constexpr int kBandRowY0 = 108;
-constexpr int kBandRowStep = 42;
-constexpr int kBandLabelX = kCenter - 168;  // left edge
-constexpr int kBandValueX = kCenter + 22;   // centre
-constexpr int kBandMinusX = kCenter + 92;
-constexpr int kBandPlusX = kCenter + 152;
-constexpr int kBandBtnW = 52;
-constexpr int kBandBtnH = 36;
-constexpr int kBandHeaderY = 84;
-constexpr int kBandsTitleY = 54;  // higher than kTitleY: the rows need the room
-constexpr int bandRowY(size_t row) { return kBandRowY0 + static_cast<int>(row) * kBandRowStep; }
-constexpr Rect bandMinus(size_t row) {
-    return {kBandMinusX, static_cast<int16_t>(bandRowY(row)), kBandBtnW, kBandBtnH};
+// Split bands: fixed title + column header at the top, fixed RESET / BACK at
+// the bottom, and a vertically scrolling list in between -- one row per limit
+// (label, value, -, +) plus a SHIFT ALL row. Drag the list up/down to scroll.
+constexpr int kBandsTitleY = 50;
+constexpr int kBandHeaderY = 78;
+constexpr int kBandViewTop = 96;      // scrolling viewport (screen y) ...
+constexpr int kBandViewBottom = 342;  // ... rows are clipped to it
+constexpr int kBandRowPitch = 62;
+constexpr int kBandBtnW = 64;
+constexpr int kBandBtnH = 50;
+constexpr int kBandBtnPad = 4;              // the -/+ pair is 8 px apart
+constexpr int kBandLabelX = kCenter - 170;  // left edge
+constexpr int kBandValueX = kCenter + 5;    // centre
+constexpr int kBandMinusX = kCenter + 70;
+constexpr int kBandPlusX = kCenter + 142;
+constexpr int kBandScrollbarX = kCenter + 182;
+// Rows: one per band limit (bands - 1) + SHIFT ALL = number of bands.
+constexpr size_t kBandRows = sizeof(config::kSplitBands) / sizeof(config::kSplitBands[0]);
+constexpr int kBandContentH = static_cast<int>(kBandRows) * kBandRowPitch;
+constexpr int kBandViewH = kBandViewBottom - kBandViewTop;
+constexpr int kBandMaxScroll = kBandContentH > kBandViewH ? kBandContentH - kBandViewH : 0;
+
+constexpr int bandRowY(size_t row, int scroll) {  // row centre, screen y
+    return kBandViewTop + static_cast<int>(row) * kBandRowPitch + kBandRowPitch / 2 - scroll;
 }
-constexpr Rect bandPlus(size_t row) {
-    return {kBandPlusX, static_cast<int16_t>(bandRowY(row)), kBandBtnW, kBandBtnH};
+constexpr Rect bandMinus(size_t row, int scroll) {
+    return {kBandMinusX, static_cast<int16_t>(bandRowY(row, scroll)), kBandBtnW, kBandBtnH};
 }
-constexpr Rect kBandsReset = {kCenter - 70, 378, 120, 46};
-constexpr Rect kBandsBack = {kCenter + 70, 378, 120, 46};
+constexpr Rect bandPlus(size_t row, int scroll) {
+    return {kBandPlusX, static_cast<int16_t>(bandRowY(row, scroll)), kBandBtnW, kBandBtnH};
+}
+constexpr bool inBandView(int y) { return y >= kBandViewTop && y < kBandViewBottom; }
+
+constexpr Rect kBandsReset = {kCenter - 75, 388, 130, 50};
+constexpr Rect kBandsBack = {kCenter + 75, 388, 130, 50};
+// Footer hit zones: each half of the screen below the list, to the edge.
+constexpr Rect kBandsResetHit = {kCenter - 76, 405, 150, 122};  // y 344..466
+constexpr Rect kBandsBackHit = {kCenter + 76, 405, 150, 122};
 
 // Confirm "clear history".
 constexpr int kConfirmTextY = 190;
 constexpr Rect kConfirmCancel = {kCenter - 75, 300, 130, 54};
 constexpr Rect kConfirmClear = {kCenter + 75, 300, 130, 54};
+constexpr int kConfirmPad = 8;
 
 }  // namespace menu_layout
 }  // namespace curl

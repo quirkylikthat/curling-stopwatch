@@ -34,9 +34,9 @@ This is the source of truth for **what actually works**. Update it whenever some
 | Grove 5 V booster off (`kGrovePortPower = false`) | ⬜ | ✅ | ✅ |
 | 1 ms idle per loop (`kLoopIdleMs`) | ⬜ | ✅ | ✅ |
 | Even spacing of the band label / secondary line (`ui/Layout.h`) | ✅ | ✅ | ✅ |
-| Menu (2 s blue hold), touch navigation, BACK / blue click | ✅ (`Menu`) | ✅ | 🟡 |
-| Settings → Brightness slider (live, saved) | ✅ (`UserSettings`, `Menu`) | ✅ | 🟡 |
-| Settings → Split bands (−/+, SHIFT ALL, RESET; saved; used for labels/colours) | ✅ | ✅ | 🟡 |
+| Menu (2 s blue hold), touch navigation, BACK / blue click | ✅ (`Menu`) | ✅ | 🟡 (BACK taps were unreliable; fixed in D22, not yet re-tested) |
+| Settings → Brightness slider (live, saved) | ✅ (`UserSettings`, `Menu`) | ✅ | ✅ (survives power cycle) |
+| Settings → Split bands (−/+, SHIFT ALL, RESET; saved; used for labels/colours) | ✅ | ✅ | ✅ saving survives power cycle · 🟡 new scrolling layout (D22) |
 | Clear history moved to the menu, with confirmation | ✅ | ✅ | 🟡 |
 | Export | ⬜ | ⬜ | ⬜ (placeholder page) |
 
@@ -46,7 +46,7 @@ This is the source of truth for **what actually works**. Update it whenever some
 |---|---|
 | Arduino CLI build: m5stack:esp32 3.3.9, M5Unified 0.2.25, M5GFX 0.2.32 | ✅ in the AI sandbox and in CI (`scripts/verify.sh`) |
 | PlatformIO build: pioarduino 55.03.39 | ✅ in the sandbox. ✅ on Mike's PC (compiled and linked; see the 2026-10-10 log) |
-| Host unit tests (70) | ✅ sandbox. On Mike's PC, needs a `g++` |
+| Host unit tests (72) | ✅ sandbox. On Mike's PC, needs a `g++` |
 | GitHub Actions CI | 🟡 Workflow written but not yet run; the repo isn't pushed to GitHub yet |
 
 ## Known issues

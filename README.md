@@ -34,7 +34,7 @@ Firmware for the [M5Stack StopWatch](https://docs.m5stack.com/en/core/StopWatch)
 | Item | What it does |
 |---|---|
 | **Settings → Brightness** | Drag the slider. The screen changes live. |
-| **Settings → Split bands** | Change each band's upper limit (−/+ in 0.05 s steps; limits always stay in order). **SHIFT ALL** moves every band together when the ice speed changes. **RESET** restores the defaults. |
+| **Settings → Split bands** | Change each band's upper limit (−/+ in 0.05 s steps; limits always stay in order). **Drag the list up or down to scroll.** **SHIFT ALL** (at the bottom of the list) moves every band together when the ice speed changes. **RESET** restores the defaults. |
 | **Export** | Placeholder for later. |
 | **Clear history** | Asks first, then deletes the stored results. |
 
@@ -129,7 +129,7 @@ v0.1.0 builds with zero warnings from our code under both toolchains: board pack
 
 ## Unit tests (no device needed)
 
-The timing logic in `src/core/` and the pure app logic in `src/app/` (screen content, settings, menu) are plain C++, with 70 tests that run on a PC. Either command runs the same tests:
+The timing logic in `src/core/` and the pure app logic in `src/app/` (screen content, settings, menu) are plain C++, with 72 tests that run on a PC. Either command runs the same tests:
 
 ```bash
 pio run -e native -t tests    # PlatformIO
