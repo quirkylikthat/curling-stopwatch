@@ -1,0 +1,150 @@
+# Release: when a version tag (vX.Y.Z) is pushed, build the firmware, merge it
+# into one flashable image and attach it to a DRAFT GitHub Release (review the
+# notes, then click Publish).
+#
+# Run it by hand from the Actions tab for a dry run: it builds and uploads the
+# files as a workflow artifact, and creates no release.
+#
+# Release steps are in docs/DEVELOPMENT.md (Releasing).
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write # create the draft release
+      actions: read # look up the CI result for this commit
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      IS_TAG: ${{ github.ref_type == 'tag' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Work out the version
+        id: ver
+        run: |
+          cfg=$(sed -n 's/.*kFirmwareVersion = "\(.*\)";.*/\1/p' src/Config.h)
+          [ -n "$cfg" ] || { echo "::error::kFirmwareVersion not found in src/Config.h"; exit 1; }
+          if [ "$IS_TAG" = "true" ]; then
+            [ "$GITHUB_REF_NAME" = "v$cfg" ] || {
+              echo "::error::Tag $GITHUB_REF_NAME does not match kFirmwareVersion $cfg"; exit 1; }
+            grep -qF "## [$cfg]" CHANGELOG.md || {
+              echo "::error::CHANGELOG.md has no '## [$cfg]' section"; exit 1; }
+            echo "label=$cfg" >> "$GITHUB_OUTPUT"
+          else
+            echo "label=dev-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      # The tag push and the main push usually arrive together, so wait for CI
+      # to finish on this exact commit and refuse to release if it failed.
+      - name: Require a green CI run for this commit
+        if: env.IS_TAG == 'true'
+        run: |
+          for i in $(seq 1 60); do
+            runs=$(gh run list --workflow ci.yml --commit "$GITHUB_SHA" --json status,conclusion)
+            ok=$(echo "$runs" | jq '[.[] | select(.conclusion=="success")] | length')
+            total=$(echo "$runs" | jq 'length')
+            pending=$(echo "$runs" | jq '[.[] | select(.status!="completed")] | length')
+            if [ "$ok" -gt 0 ]; then echo "CI passed for $GITHUB_SHA"; exit 0; fi
+            if [ "$total" -gt 0 ] && [ "$pending" -eq 0 ]; then
+              echo "::error::CI did not pass for $GITHUB_SHA"; exit 1; fi
+            echo "Waiting for CI ($i/60)..."; sleep 30
+          done
+          echo "::error::Timed out waiting for CI"; exit 1
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache PlatformIO
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-release-${{ hashFiles('platformio.ini', '.github/workflows/release.yml') }}
+
+      - name: Install PlatformIO (pinned, same as ci.yml)
+        run: pip install platformio==6.2.0
+
+      - name: Test the merge script
+        run: python3 -m unittest discover -s scripts
+
+      - name: Build firmware
+        run: pio run -e stopwatch # never add -v (see AGENTS.md)
+
+      - name: Assemble release files
+        env:
+          LABEL: ${{ steps.ver.outputs.label }}
+        run: |
+          build=.pio/build/stopwatch
+          boot=$(find ~/.platformio/packages -name boot_app0.bin -print -quit)
+          [ -n "$boot" ] || { echo "::error::boot_app0.bin not found"; exit 1; }
+          mkdir release
+          python3 scripts/merge_firmware.py \
+            --bootloader "$build/bootloader.bin" --partitions "$build/partitions.bin" \
+            --boot-app0 "$boot" --app "$build/firmware.bin" \
+            -o "release/curling-timer-$LABEL-merged.bin"
+          cp "$build/firmware.bin" "release/curling-timer-$LABEL-app.bin"
+          cp LICENSE NOTICE release/
+          (cd release && sha256sum curling-timer-* LICENSE NOTICE > SHA256SUMS && cat SHA256SUMS)
+
+      - name: Write release notes
+        env:
+          LABEL: ${{ steps.ver.outputs.label }}
+        run: |
+          {
+            if [ "$IS_TAG" = "true" ]; then
+              awk -v v="$LABEL" 'index($0,"## [" v "]")==1 {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md
+            fi
+            cat <<EOF
+
+          ## Install
+
+          Download \`curling-timer-$LABEL-merged.bin\`, put the watch in download mode (hold the power button about 2 s until the green LED lights), then:
+
+          \`\`\`
+          pip install esptool
+          python -m esptool --chip esp32s3 --port COM5 write_flash 0x0 curling-timer-$LABEL-merged.bin
+          \`\`\`
+
+          Use your own serial port instead of COM5. This replaces the firmware and resets saved settings. \`SHA256SUMS\` lets you check the download. \`-app.bin\` is the application alone, for developers.
+
+          ## License
+
+          Source-available under the PolyForm Noncommercial License 1.0.0 (\`LICENSE\`): free for noncommercial use, with attribution (\`NOTICE\`). The firmware also contains M5Unified and M5GFX (MIT, M5Stack). Commercial use needs a separate license; see the README.
+          EOF
+          } > notes.md
+          cat notes.md
+
+      - name: Create draft release
+        if: env.IS_TAG == 'true'
+        run: |
+          flags=(--draft)
+          case "$GITHUB_REF_NAME" in *-*) flags+=(--prerelease);; esac
+          gh release create "$GITHUB_REF_NAME" release/* \
+            --title "Curling Timer $GITHUB_REF_NAME" \
+            --notes-file notes.md --verify-tag "${flags[@]}"
+
+      - name: Upload files (dry run)
+        if: env.IS_TAG != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-files
+          path: |
+            release/
+            notes.md

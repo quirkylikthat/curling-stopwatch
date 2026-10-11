@@ -17,6 +17,17 @@ Tap the yellow button as the stone crosses each line. The watch shows the **spli
 - **Long battery life:** the screen dims, then the watch sleeps, without ever losing a tap or the history.
 - **USB logging:** every result is printed to the serial port as a CSV line.
 
+## Install
+
+Download `curling-timer-X.Y.Z-merged.bin` from the [latest release](https://github.com/quirkylikthat/curling-stopwatch/releases/latest). Put the watch in download mode (hold the power button about 2 s until the green LED lights), then flash it with [esptool](https://github.com/espressif/esptool):
+
+```
+pip install esptool
+python -m esptool --chip esp32s3 --port COM5 write_flash 0x0 curling-timer-X.Y.Z-merged.bin
+```
+
+Use your own serial port instead of `COM5`. To build from source instead, see the [developer guide](docs/DEVELOPMENT.md).
+
 ## Timing modes
 
 A blue click cycles through the modes. The mode name is shown at the top of the screen.

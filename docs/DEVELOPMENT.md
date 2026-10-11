@@ -115,6 +115,12 @@ Every tunable lives in `src/Config.h`; logic lives elsewhere. The ones you're mo
 2. In `CHANGELOG.md`, rename *Unreleased* to the version and date, and start a new empty *Unreleased*.
 3. Run `scripts/verify.sh`, commit "Release vX.Y.Z", and create an annotated tag: `git tag -a vX.Y.Z -m "vX.Y.Z"`.
 4. Push both: `git push Github main --follow-tags`.
+5. **The release workflow takes over** (`.github/workflows/release.yml`, triggered by the `v*` tag). It checks that the tag matches `kFirmwareVersion` and that `CHANGELOG.md` has that version's section, waits for CI to pass on the commit, builds the firmware, merges it into one image (`scripts/merge_firmware.py`), and creates a **draft** GitHub Release with the image, the app-only `.bin`, `SHA256SUMS`, `LICENSE` and `NOTICE`. The release notes are the changelog section plus install steps.
+6. Open the draft under *Releases*, read the notes, and click **Publish**.
+
+To test the pipeline without tagging, run **release** from the Actions tab (*Run workflow*). It does everything except create a release, and uploads the files as a workflow artifact. A tag whose version mismatches, or whose commit failed CI, fails before building.
+
+**Flashing a release image:** put the watch in download mode (hold power about 2 s until the green LED lights), then `python -m esptool --chip esp32s3 --port COM5 write_flash 0x0 curling-timer-X.Y.Z-merged.bin`.
 
 ## Project layout
 
@@ -138,8 +144,9 @@ stopwatch/
 ├── CLAUDE.md            imports AGENTS.md (for Claude)
 ├── CHANGELOG.md
 ├── LICENSE, NOTICE      PolyForm Noncommercial 1.0.0 + required attribution line
-├── scripts/             verify.sh/.ps1, pio-diagnose.ps1, pio_tests.py, fontmetrics.py
-├── .github/workflows/   CI: runs scripts/verify.sh
+├── scripts/             verify.sh/.ps1, pio-diagnose.ps1, pio_tests.py, fontmetrics.py,
+│                        merge_firmware.py (+ test) for release images
+├── .github/workflows/   ci.yml (runs scripts/verify.sh), release.yml (tagged releases)
 │
 │   PlatformIO only (Arduino IDE ignores these):
 ├── platformio.ini       envs: stopwatch (device), native (tests); pinned versions

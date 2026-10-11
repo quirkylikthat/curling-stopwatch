@@ -14,6 +14,10 @@ test/build/
 .vscode/ipch
 pio-build.log
 
+# Python (scripts/)
+__pycache__/
+*.pyc
+
 # Arduino IDE / CLI
 .arduino/
 

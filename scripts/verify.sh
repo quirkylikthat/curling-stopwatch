@@ -29,6 +29,9 @@ fi
 
 step "2/4 unit tests"
 make -C test --no-print-directory
+if have python3; then
+    PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts
+fi
 
 if [[ $QUICK == 1 ]]; then
     echo; echo "quick checks passed"; exit 0
