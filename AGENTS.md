@@ -18,6 +18,7 @@ The owner is **Mike**. He rates his C++ as "some experience". He wants design de
 | `docs/ARCHITECTURE.md` | Layers, main loop, **decision log D1–D22**. Don't contradict a decision without adding a new one that supersedes it. |
 | `docs/HARDWARE.md` | Pins, M5Unified API facts, sleep and wake details. Some items are verified from library source and some aren't; it says which. |
 | `docs/STATUS.md` | What's verified **on the device** versus only compiled or unit-tested. |
+| `docs/DEVELOPMENT.md` | Build setup for both toolchains, commands, tunables, releasing. |
 | `src/Config.h` | Every tunable. |
 
 ## 2. Invariants (do not break)
@@ -62,7 +63,7 @@ The owner is **Mike**. He rates his C++ as "some experience". He wants design de
     - M5GFX `0.2.32`
     - clang-format `23.1.3`
 
-    Change them only on purpose, everywhere at once (`platformio.ini`, `.github/workflows/ci.yml`, README), and with a re-test.
+    Change them only on purpose, everywhere at once (`platformio.ini`, `.github/workflows/ci.yml`, `docs/DEVELOPMENT.md`), and with a re-test.
 
 ## 3. Definition of done
 
@@ -78,7 +79,8 @@ A change is done when **all** of these are true:
 - [ ] **Code is formatted** with `clang-format -i` (`.clang-format`). Hand-aligned tables in `Config.h` are fenced with `// clang-format off/on`.
 - [ ] **Docs are updated:**
   - **ARCHITECTURE decision log:** a new `Dn` entry for any non-obvious choice. Use the template below.
-  - **README:** if user-visible behaviour, controls or setup changed.
+  - **README:** if features, controls or other user-visible behaviour changed. It's the user guide and docs index.
+  - **`docs/DEVELOPMENT.md`:** if build setup, tooling, commands or tunables a developer would touch changed.
   - **`docs/STATUS.md`:** add the feature as *not yet verified on device*.
   - **`CHANGELOG.md`:** add an entry under *Unreleased*.
   - **ARCHITECTURE §4 checklist:** add device test steps for anything hardware-dependent.

@@ -4,6 +4,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 
 ## [Unreleased]
 
+### Changed
+- **Docs:** the README is now the user guide (summary, features, controls, screens, menu, power saving) and an index of the project docs. Build setup, testing, tunables and project layout moved to the new `docs/DEVELOPMENT.md`, which also gains a releasing checklist.
+
 ## [0.2.0] - 2026-10-10
 
 All items below verified on the device (bench test), except the serial CSV output; see `docs/STATUS.md`.

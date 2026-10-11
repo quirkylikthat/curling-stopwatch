@@ -1,6 +1,6 @@
 # CI: runs scripts/verify.sh (format, unit tests, PlatformIO + Arduino CLI
 # firmware builds) on every push and pull request. Toolchain versions here
-# must match platformio.ini and README.
+# must match platformio.ini and docs/DEVELOPMENT.md.
 name: ci
 
 on:
