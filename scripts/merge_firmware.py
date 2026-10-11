@@ -5,7 +5,7 @@ PlatformIO produces separate files (bootloader, partition table, boot_app0 and
 the app). Flashing them one by one is fiddly, so the release workflow merges
 them into a single file that is written at address 0x0:
 
-    esptool.py --chip esp32s3 write_flash 0x0 curling-timer-X.Y.Z-merged.bin
+    python -m esptool --chip esp32s3 write-flash 0x0 curling-timer-X.Y.Z-merged.bin
 
 Offsets come from the partition table itself (not hard-coded), so a change to
 the partition layout can't silently produce a broken image. Standard library

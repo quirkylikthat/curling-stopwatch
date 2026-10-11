@@ -119,10 +119,10 @@ jobs:
 
           \`\`\`
           pip install esptool
-          python -m esptool --chip esp32s3 write_flash 0x0 curling-timer-$LABEL-merged.bin
+          python -m esptool --chip esp32s3 write-flash 0x0 curling-timer-$LABEL-merged.bin
           \`\`\`
 
-          esptool finds the watch by itself; if it can't, see "Finding the serial port" in the README and add \`--port\`. This replaces the firmware and resets saved settings. \`SHA256SUMS\` lets you check the download. \`-app.bin\` is the application alone, for developers.
+          esptool needs Python 3.10 or newer. On Windows, if \`python\` isn't found, use \`py -m pip install esptool\` and \`py -m esptool ...\`. esptool finds the watch by itself; if it can't, see "Finding the serial port" in the README and add \`--port\`. The watch does not restart by itself afterwards: press the power button to start it. Flashing replaces the firmware and resets saved settings. \`SHA256SUMS\` lets you check the download. \`-app.bin\` is the application alone, for developers.
 
           ## License
 

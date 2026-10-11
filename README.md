@@ -115,14 +115,18 @@ Connect a serial monitor at 115200 baud and every result is printed as a CSV lin
 
 **1. Get the hardware.** You need an [M5Stack StopWatch (C152)](https://shop.m5stack.com/products/m5stack-stopwatch-dev-kit-esp32-s3) from the official M5Stack store. If it's out of stock, M5Stack's [where to buy](https://m5stack.com/distributor) page lists distributors, and the product is also sold through their AliExpress and Amazon shops. No other hardware is needed.
 
-**2. Flash the firmware.** Download `curling-timer-X.Y.Z-merged.bin` from the [latest release](https://github.com/quirkylikthat/curling-stopwatch/releases/latest). Put the watch in download mode (hold the power button about 2 s until the green LED lights), then flash it with [esptool](https://github.com/espressif/esptool):
+**2. Flash the firmware.** Download `curling-timer-X.Y.Z-merged.bin` from the [latest release](https://github.com/quirkylikthat/curling-stopwatch/releases/latest). Put the watch in download mode (hold the power button about 2 s until the green LED lights), then flash it with [esptool](https://github.com/espressif/esptool), which needs Python 3.10 or newer:
 
 ```
 pip install esptool
-python -m esptool --chip esp32s3 write_flash 0x0 curling-timer-X.Y.Z-merged.bin
+python -m esptool --chip esp32s3 write-flash 0x0 curling-timer-X.Y.Z-merged.bin
 ```
 
+**On Windows**, `python` may not be found (or may open the Microsoft Store). Use the `py` launcher instead: `py -m pip install esptool`, then `py -m esptool --chip esp32s3 write-flash 0x0 curling-timer-X.Y.Z-merged.bin`. If Python isn't installed, `winget install Python.Python.3.12` installs it (reopen PowerShell afterwards).
+
 esptool looks for the watch by itself. If it reports no port, or finds several, add `--port` with the watch's port (see below), for example `--port COM5`.
+
+**After flashing, the watch does not restart by itself: press the power button to start it.** Flashing replaces the firmware and resets the saved settings (brightness and split bands) to the defaults.
 
 **Finding the serial port.** Plug the watch in with a USB-C **data** cable (some cables only charge), and put it in download mode first.
 
