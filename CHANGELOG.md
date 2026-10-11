@@ -5,6 +5,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 ## [Unreleased]
 
 ### Added
+- **Screenshot tool** (`tools/screenshots`, `make -C tools/screenshots`): renders every screen the README describes to a PNG in `docs/screenshots/` on a PC, round with transparent corners like the glass (31 images: splash, the three modes ready / running / result, all six weight bands, timed-out, battery arc states, history screen full and empty, every menu page). It compiles the firmware's real `Renderer` unchanged and drives the real view/menu logic, so no firmware code changed. See decision D23.
+
 - **License:** the project is now under the PolyForm Noncommercial License 1.0.0 (`LICENSE`). Noncommercial use, modification and sharing are allowed; sharing must keep the `Required Notice:` attribution line in `NOTICE`. Commercial use needs a separate license (contact in README).
 
 - **Release workflow** (`.github/workflows/release.yml`): pushing a `vX.Y.Z` tag builds the firmware and creates a draft GitHub Release with one flashable image (`scripts/merge_firmware.py`, with tests), the app-only binary, `SHA256SUMS`, `LICENSE` and `NOTICE`. It refuses a tag that doesn't match `kFirmwareVersion` or a commit that failed CI. README gains an Install section.

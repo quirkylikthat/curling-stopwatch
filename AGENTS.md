@@ -15,10 +15,11 @@ The owner is **Mike**. He rates his C++ as "some experience". He wants design de
 
 | File | Why |
 |---|---|
-| `docs/ARCHITECTURE.md` | Layers, main loop, **decision log D1–D22**. Don't contradict a decision without adding a new one that supersedes it. |
+| `docs/ARCHITECTURE.md` | Layers, main loop, **decision log D1–D23**. Don't contradict a decision without adding a new one that supersedes it. |
 | `docs/HARDWARE.md` | Pins, M5Unified API facts, sleep and wake details. Some items are verified from library source and some aren't; it says which. |
 | `docs/STATUS.md` | What's verified **on the device** versus only compiled or unit-tested. |
 | `docs/DEVELOPMENT.md` | Build setup for both toolchains, commands, tunables, releasing. |
+| `docs/PINS.md` | Every pinned version, where it's set, and the **monthly review** (check its *Last reviewed* date at session start). |
 | `src/Config.h` | Every tunable. |
 
 ## 2. Invariants (do not break)
@@ -64,7 +65,9 @@ The owner is **Mike**. He rates his C++ as "some experience". He wants design de
     - clang-format `23.1.3`
     - PlatformIO Core `6.2.0` and arduino-cli `1.5.1` (CI only)
 
-    Change them only on purpose, everywhere at once (`platformio.ini`, `.github/workflows/ci.yml`, `docs/DEVELOPMENT.md`), and with a re-test.
+    Change them only on purpose, everywhere at once (`platformio.ini`, `.github/workflows/ci.yml`, `.github/workflows/release.yml`, `docs/DEVELOPMENT.md`, `docs/PINS.md`), and with a re-test.
+
+    **Monthly review:** every pinned item (including CI actions and the runner image) is listed in `docs/PINS.md` with a *Last reviewed* date. At the start of a session, check that date. If it's more than about 35 days old, tell Mike straight away and offer to run the review (the steps are in that file). Reviewing is not upgrading: look for security fixes, end-of-life and deprecations, and ask before changing any firmware library or toolchain pin.
 
 ## 3. Definition of done
 

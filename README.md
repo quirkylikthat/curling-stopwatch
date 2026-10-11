@@ -6,6 +6,10 @@ Tap the yellow button as the stone crosses each line. The watch shows the **spli
 
 **Current version: 0.2.0.** Every feature has been bench-tested on the device; see [STATUS](docs/STATUS.md). The default weight bands are placeholders until they're calibrated on real ice.
 
+<table><tr><td align="center"><img src="docs/screenshots/split-result.png" width="200" alt="Split with its weight band"><br><sub>Split with its weight band</sub></td><td align="center"><img src="docs/screenshots/both-result.png" width="200" alt="Split + hog-to-hog"><br><sub>Split + hog-to-hog</sub></td><td align="center"><img src="docs/screenshots/history-full.png" width="200" alt="History"><br><sub>History</sub></td></tr></table>
+
+<sub>Screens are rendered on a PC by the firmware's own renderer; colours on the real AMOLED differ slightly. All of them are in [docs/screenshots](docs/screenshots/index.md).</sub>
+
 ## Features
 
 - **Three timing modes:** split, hog-to-hog, or both from one stone.
@@ -29,6 +33,8 @@ A blue click cycles through the modes. The mode name is shown at the top of the 
 
 Each mode has a sanity window. A tap that comes too soon is ignored, and a run with no tap for too long times out (split: 1.5–8 s; hog-to-hog: 5–35 s).
 
+<table><tr><td align="center"><img src="docs/screenshots/split-result.png" width="180" alt="SPLIT"><br><sub>SPLIT</sub></td><td align="center"><img src="docs/screenshots/hogHog-result.png" width="180" alt="HOG-HOG"><br><sub>HOG-HOG</sub></td><td align="center"><img src="docs/screenshots/both-result.png" width="180" alt="SPLIT+H2H"><br><sub>SPLIT+H2H</sub></td></tr></table>
+
 ## The timing screen
 
 From top to bottom:
@@ -39,6 +45,16 @@ From top to bottom:
 - **The big number.** It runs live in tenths while timing, then shows the final time in hundredths. Times are truncated, not rounded, like any stopwatch.
 - **Weight band** label in its colour (for splits), and in SPLIT+H2H the split line.
 - **Last 3 results** along the bottom.
+
+<table><tr><td align="center"><img src="docs/screenshots/split-ready.png" width="130" alt="Ready"><br><sub>Ready</sub></td><td align="center"><img src="docs/screenshots/split-running.png" width="130" alt="Timing"><br><sub>Timing</sub></td><td align="center"><img src="docs/screenshots/split-result.png" width="130" alt="Result"><br><sub>Result</sub></td><td align="center"><img src="docs/screenshots/timed-out.png" width="130" alt="Timed out"><br><sub>Timed out</sub></td></tr></table>
+
+Weight bands, from fastest to slowest split:
+
+<table><tr><td align="center"><img src="docs/screenshots/band-peel.png" width="120" alt="PEEL"><br><sub>PEEL</sub></td><td align="center"><img src="docs/screenshots/band-takeout.png" width="120" alt="TAKEOUT"><br><sub>TAKEOUT</sub></td><td align="center"><img src="docs/screenshots/band-board.png" width="120" alt="BOARD"><br><sub>BOARD</sub></td><td align="center"><img src="docs/screenshots/band-hack.png" width="120" alt="HACK"><br><sub>HACK</sub></td><td align="center"><img src="docs/screenshots/band-draw.png" width="120" alt="DRAW"><br><sub>DRAW</sub></td><td align="center"><img src="docs/screenshots/band-guard.png" width="120" alt="GUARD"><br><sub>GUARD</sub></td></tr></table>
+
+Battery arc: green, red at 15% or less, blue while charging:
+
+<table><tr><td align="center"><img src="docs/screenshots/battery-ok.png" width="130" alt="80%"><br><sub>80%</sub></td><td align="center"><img src="docs/screenshots/battery-low.png" width="130" alt="12%"><br><sub>12%</sub></td><td align="center"><img src="docs/screenshots/battery-charging.png" width="130" alt="Charging"><br><sub>Charging</sub></td></tr></table>
 
 ## Controls
 
@@ -58,6 +74,8 @@ The last 10 throws, newest at the top.
 - A throw timed in SPLIT+H2H shows both on one row. A throw with only one of them shows `-` in the other column.
 - The small `#n` is the throw's sequence number, which matches the USB log.
 
+<table><tr><td align="center"><img src="docs/screenshots/history-full.png" width="260" alt="History screen"><br><sub>History screen</sub></td></tr></table>
+
 ## Menu
 
 The menu is for use off the ice. It's the only place the **touchscreen** is used; touch is ignored on the timing and history screens, so gloves and accidental contact can't change anything mid-game.
@@ -68,6 +86,10 @@ The menu is for use off the ice. It's the only place the **touchscreen** is used
 | **Settings → Split bands** | Change each band's upper limit with −/+ (0.05 s steps; the limits always stay in order). Drag the list to scroll. **SHIFT ALL**, at the bottom of the list, moves every band together when the ice speed changes. **RESET** restores the defaults. |
 | **Export** | Placeholder; coming in a later version. |
 | **Clear history** | Asks first, then deletes the stored results. |
+
+<table><tr><td align="center"><img src="docs/screenshots/menu-main.png" width="150" alt="Menu"><br><sub>Menu</sub></td><td align="center"><img src="docs/screenshots/menu-settings.png" width="150" alt="Settings"><br><sub>Settings</sub></td><td align="center"><img src="docs/screenshots/menu-brightness.png" width="150" alt="Brightness"><br><sub>Brightness</sub></td></tr></table>
+
+<table><tr><td align="center"><img src="docs/screenshots/menu-bands-top.png" width="150" alt="Split bands"><br><sub>Split bands</sub></td><td align="center"><img src="docs/screenshots/menu-bands-bottom.png" width="150" alt="Split bands, scrolled to SHIFT ALL"><br><sub>Split bands, scrolled to SHIFT ALL</sub></td><td align="center"><img src="docs/screenshots/menu-clear-confirm.png" width="150" alt="Clear history"><br><sub>Clear history</sub></td></tr></table>
 
 **BACK** on the screen, or a blue click, goes up one level. Settings are saved when you leave a page or the menu, and survive power-off.
 
@@ -116,8 +138,10 @@ If the port disappears or flashing fails partway, unplug the watch, put it back 
 | Document | What's in it |
 |---|---|
 | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | **Developer guide:** building with VS Code/PlatformIO or the Arduino IDE, flashing, unit tests, checks, tunables, releasing, project layout, known issues |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the firmware is structured, the decision log (D1–D22) with the reasoning behind each choice, and the on-device test checklist |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the firmware is structured, the decision log (D1–D23) with the reasoning behind each choice, and the on-device test checklist |
 | [docs/HARDWARE.md](docs/HARDWARE.md) | Pin map, M5Unified/M5GFX API notes for this board, sleep and wake details, hardware gotchas |
+| [docs/PINS.md](docs/PINS.md) | Every pinned version (firmware libraries, CI tools, actions), where it's set, and the monthly review checklist |
+| [docs/screenshots](docs/screenshots/index.md) | Every screen as a PNG, rendered from the firmware's own renderer (`make -C tools/screenshots`) |
 | [docs/STATUS.md](docs/STATUS.md) | What's verified on the device versus only compiled or unit-tested; known issues and next steps |
 | [CHANGELOG.md](CHANGELOG.md) | What changed in each version |
 | [AGENTS.md](AGENTS.md) | Rules for anyone changing the code (people or AI): invariants, definition of done, pitfalls |

@@ -288,6 +288,19 @@ Navigation:
 
 **Revisit if:** taps still miss. Read the `[menu] tap` lines against the button positions in `ui/MenuLayout.h`; a steady offset means set `kTouchOffsetX/Y`, scattered taps mean widen the padding.
 
+### D23 — Screenshots are rendered on the PC from the real Renderer, not captured from the watch
+**Choice:** `tools/screenshots` compiles the firmware's own `src/ui/Renderer.cpp` (unchanged) on a PC against M5GFX's headless back end (`LGFX_LINUX_FB`; sprites only, no SDL), with a small stand-in `M5Unified.h` (`tools/screenshots/shim/`) that makes `M5.Display` an in-memory 466×466 sprite. A scene runner drives the real `ViewBuilder`, `Menu` and `SequenceTimer` to reach each state and writes one PNG per screen to `docs/screenshots/` (plus `index.md`). Run `make -C tools/screenshots`.
+
+**Why:**
+- **No firmware change.** The shim is only on the include path of the tool, so the device build, the invariants and the on-device verification status are untouched.
+- **Deterministic and complete.** States that are hard to hold on a real watch (all six weight bands, the low-battery arc, a timed-out run, the history screen full of mixed rows, the bottom of the band list) are produced by script, the same way every time. A hardware capture would need a serial protocol in the firmware, and a second 425 KB copy of the frame.
+- **Tests the real code path.** Scenes come from real taps through the real logic, so a screenshot also shows what the code does, not what a mock-up says.
+- Alternative rejected for now: on-device capture over USB serial. It would show true panel colour, but it adds firmware code (and a `loop()` budget to protect) for little gain.
+
+**Limits:** it is the framebuffer, not a photo of the AMOLED (colour and brightness differ on the glass). Images are masked to the round glass (RGBA PNG, transparent corners, 1 px anti-aliased edge); `SQUARE=1` keeps the full frame. Power-saving states (dim, light sleep), button haptics and the USB log aren't pictures and aren't covered. A change to `Renderer`, `Theme`, `Layout` or `MenuLayout` should be followed by a re-run so the images don't go stale.
+
+**Revisit if:** we want true-colour captures of the real panel (add a serial screenshot command), or the headless back end disappears from a newer M5GFX (check on each monthly pin review).
+
 ## 3. How to extend
 
 | You want to… | Do this |
