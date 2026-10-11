@@ -297,7 +297,7 @@ Navigation:
 - **Tests the real code path.** Scenes come from real taps through the real logic, so a screenshot also shows what the code does, not what a mock-up says.
 - Alternative rejected for now: on-device capture over USB serial. It would show true panel colour, but it adds firmware code (and a `loop()` budget to protect) for little gain.
 
-**Limits:** it is the framebuffer, not a photo of the AMOLED (colour and brightness differ on the glass). Images are masked to the round glass (RGBA PNG, transparent corners, 1 px anti-aliased edge); `SQUARE=1` keeps the full frame. Power-saving states (dim, light sleep), button haptics and the USB log aren't pictures and aren't covered. A change to `Renderer`, `Theme`, `Layout` or `MenuLayout` should be followed by a re-run so the images don't go stale.
+**Limits:** it is the framebuffer, not a photo of the AMOLED (colour and brightness differ on the glass). Images are masked to the round glass (RGBA PNG, transparent corners, 1 px anti-aliased edge); `SQUARE=1` keeps the full frame. Power-saving states (dim, light sleep), button haptics and the USB log aren't pictures and aren't covered. A change to `Renderer`, `Theme`, `Layout` or `MenuLayout` must be followed by a re-run: `scripts/verify.sh` step 5 (and so CI) regenerates the images and fails if they differ from the committed ones, which relies on the output being byte-for-byte reproducible on the pinned runner.
 
 **Revisit if:** we want true-colour captures of the real panel (add a serial screenshot command), or the headless back end disappears from a newer M5GFX (check on each monthly pin review).
 

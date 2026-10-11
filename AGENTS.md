@@ -79,6 +79,7 @@ A change is done when **all** of these are true:
   - 76+ unit tests
   - PlatformIO build with `-Werror` on our sources
   - Arduino CLI build with no warnings in our sources
+  - screenshots current: after any change to `Renderer`, `Theme`, `Layout` or `MenuLayout`, run `make -C tools/screenshots` and commit `docs/screenshots/`
   - On Windows without bash, run `scripts\verify.ps1`; CI runs the full gate.
 - [ ] **Code is formatted** with `clang-format -i` (`.clang-format`). Hand-aligned tables in `Config.h` are fenced with `// clang-format off/on`.
 - [ ] **Docs are updated:**
