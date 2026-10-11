@@ -72,5 +72,28 @@ constexpr int kHistSplitX = kCenter - 35;    // column centres
 constexpr int kHistHogX = kCenter + 75;
 constexpr int kHistFooterY = 412;
 
+// Boot splash: a curling house, with the real ring proportions (12-foot : 8-foot :
+// 4-foot : button = 6 : 4 : 2 : 0.5 ft of radius), filling the round glass. The
+// title is curved along the blue ring. It's on screen for under a second, so the
+// big bright areas are not a burn-in or battery concern (unlike the timing screen).
+constexpr uint16_t kHouseBlue = rgb565(0, 60, 150);
+constexpr uint16_t kHouseWhite = rgb565(225, 230, 238);
+constexpr uint16_t kHouseRed = rgb565(190, 20, 30);
+constexpr int kHouseR12 = kCenter;           // 12-foot ring = the glass edge
+constexpr int kHouseR8 = kHouseR12 * 2 / 3;  // 8-foot ring
+constexpr int kHouseR4 = kHouseR12 / 3;      // 4-foot ring
+constexpr int kHouseButtonR = kHouseR12 / 12;
+// Title radius: the middle of the blue ring, nudged inward to leave room under "TIMER".
+constexpr int kSplashTextR = (kHouseR8 + kHouseR12) / 2 - 6;
+constexpr int kSplashTracking = 4;  // extra px between curved letters
+// A glyph's ink centre sits this far above its baseline (FreeSansBold24pt caps).
+constexpr int kSplashInkCenter = (kBandInkAbove - kBandInkBelow) / 2;
+constexpr int kSplashHalfInk = (kBandInkAbove + kBandInkBelow) / 2;  // half a title letter's height
+// Version: small straight text in the blue strip between "TIMER" and the glass edge,
+// centred in it. FreeSans9pt7b digits: ink rows -12..0 (13 px tall, on the baseline).
+constexpr int kVersionInkAbove = 12;
+constexpr int kSplashVersionBaseline =
+    kCenter + (kSplashTextR + kSplashHalfInk + kHouseR12) / 2 + kVersionInkAbove / 2;
+
 }  // namespace theme
 }  // namespace curl

@@ -4,6 +4,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 
 ## [Unreleased]
 
+### Changed
+- **Boot splash redesigned:** the splash is now a curling house (blue, white and red rings with a white button, at the real proportions) with "CURLING" curved over the top and "TIMER" under the bottom of the blue ring. The version is small text under "TIMER". Passes unit tests (including fit checks on the curved text) and confirmed on the device by Mike. See decision D24.
+
 ## [0.2.1] - 2026-10-11
 
 ### Added
