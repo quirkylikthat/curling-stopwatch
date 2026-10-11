@@ -17,17 +17,6 @@ Tap the yellow button as the stone crosses each line. The watch shows the **spli
 - **Long battery life:** the screen dims, then the watch sleeps, without ever losing a tap or the history.
 - **USB logging:** every result is printed to the serial port as a CSV line.
 
-## Install
-
-Download `curling-timer-X.Y.Z-merged.bin` from the [latest release](https://github.com/quirkylikthat/curling-stopwatch/releases/latest). Put the watch in download mode (hold the power button about 2 s until the green LED lights), then flash it with [esptool](https://github.com/espressif/esptool):
-
-```
-pip install esptool
-python -m esptool --chip esp32s3 --port COM5 write_flash 0x0 curling-timer-X.Y.Z-merged.bin
-```
-
-Use your own serial port instead of `COM5`. To build from source instead, see the [developer guide](docs/DEVELOPMENT.md).
-
 ## Timing modes
 
 A blue click cycles through the modes. The mode name is shown at the top of the screen.
@@ -99,6 +88,28 @@ Unused hardware (the motion sensor and the Grove port's 5 V output) is kept swit
 ## USB logging
 
 Connect a serial monitor at 115200 baud and every result is printed as a CSV line (`csv,seq,profile,split_s,hog_to_hog_s,complete`). Details are in the [developer guide](docs/DEVELOPMENT.md#serial-monitor).
+
+## Install
+
+**1. Get the hardware.** You need an [M5Stack StopWatch (C152)](https://shop.m5stack.com/products/m5stack-stopwatch-dev-kit-esp32-s3) from the official M5Stack store. If it's out of stock, M5Stack's [where to buy](https://m5stack.com/distributor) page lists distributors, and the product is also sold through their AliExpress and Amazon shops. No other hardware is needed.
+
+**2. Flash the firmware.** Download `curling-timer-X.Y.Z-merged.bin` from the [latest release](https://github.com/quirkylikthat/curling-stopwatch/releases/latest). Put the watch in download mode (hold the power button about 2 s until the green LED lights), then flash it with [esptool](https://github.com/espressif/esptool):
+
+```
+pip install esptool
+python -m esptool --chip esp32s3 write_flash 0x0 curling-timer-X.Y.Z-merged.bin
+```
+
+esptool looks for the watch by itself. If it reports no port, or finds several, add `--port` with the watch's port (see below), for example `--port COM5`.
+
+**Finding the serial port.** Plug the watch in with a USB-C **data** cable (some cables only charge), and put it in download mode first.
+
+- **Any system:** run `python -m serial.tools.list_ports -v`. The watch is the entry with `VID:PID=303A:1001` (Espressif USB JTAG/serial). The first column is the port to use.
+- **Windows:** open *Device Manager → Ports (COM & LPT)*. The watch appears as *USB Serial Device (COMx)* or *USB JTAG/serial debug unit (COMx)*. Unsure which? Unplug the watch, see which entry disappears, then plug it back in. If no port appears, install M5Stack's [USB driver](https://docs.m5stack.com/en/download).
+- **macOS:** run `ls /dev/cu.usbmodem*`. Use the path it prints, such as `/dev/cu.usbmodem1101`.
+- **Linux:** run `ls /dev/ttyACM*`. Use the path it prints, usually `/dev/ttyACM0`. If you get a permission error, add yourself to the `dialout` group (`sudo usermod -aG dialout $USER`), then log out and back in.
+
+If the port disappears or flashing fails partway, unplug the watch, put it back in download mode, and try again. To build from source instead, see the [developer guide](docs/DEVELOPMENT.md).
 
 ## Documentation
 

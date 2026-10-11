@@ -10,6 +10,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 - **Release workflow** (`.github/workflows/release.yml`): pushing a `vX.Y.Z` tag builds the firmware and creates a draft GitHub Release with one flashable image (`scripts/merge_firmware.py`, with tests), the app-only binary, `SHA256SUMS`, `LICENSE` and `NOTICE`. It refuses a tag that doesn't match `kFirmwareVersion` or a commit that failed CI. README gains an Install section.
 
 ### Changed
+- **README install steps:** esptool now finds the watch by itself, and a new "Finding the serial port" section covers Windows, macOS and Linux.
 - **CI hardening:** PlatformIO Core (6.2.0) and arduino-cli (1.5.1) are now pinned like the rest of the toolchain; the workflow token is read-only and the checkout doesn't keep credentials; runs trigger on pushes to `main`, pull requests, or manually, and a newer run cancels an older one on the same branch.
 - **Docs:** the README is now the user guide (summary, features, controls, screens, menu, power saving) and an index of the project docs. Build setup, testing, tunables and project layout moved to the new `docs/DEVELOPMENT.md`, which also gains a releasing checklist.
 

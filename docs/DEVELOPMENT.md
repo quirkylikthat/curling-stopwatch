@@ -120,7 +120,7 @@ Every tunable lives in `src/Config.h`; logic lives elsewhere. The ones you're mo
 
 To test the pipeline without tagging, run **release** from the Actions tab (*Run workflow*). It does everything except create a release, and uploads the files as a workflow artifact. A tag whose version mismatches, or whose commit failed CI, fails before building.
 
-**Flashing a release image:** put the watch in download mode (hold power about 2 s until the green LED lights), then `python -m esptool --chip esp32s3 --port COM5 write_flash 0x0 curling-timer-X.Y.Z-merged.bin`.
+**Flashing a release image:** put the watch in download mode (hold power about 2 s until the green LED lights), then `python -m esptool --chip esp32s3 write_flash 0x0 curling-timer-X.Y.Z-merged.bin` (esptool auto-detects the port; the README explains how to find it if it can't).
 
 ## Project layout
 
