@@ -9,7 +9,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 
 - **Release workflow** (`.github/workflows/release.yml`): pushing a `vX.Y.Z` tag builds the firmware and creates a draft GitHub Release with one flashable image (`scripts/merge_firmware.py`, with tests), the app-only binary, `SHA256SUMS`, `LICENSE` and `NOTICE`. It refuses a tag that doesn't match `kFirmwareVersion` or a commit that failed CI. README gains an Install section.
 
+- **Dependabot** (`.github/dependabot.yml`): one grouped monthly pull request for newer GitHub Actions versions, checked by CI.
+
 ### Changed
+- **First full pin review** (recorded in `docs/PINS.md`): all firmware libraries and CI tools are current except pioarduino (three patch releases behind; scheduled as a batch with an on-device re-test).
+- **Monthly pin review:** new `docs/PINS.md` lists every pinned version and where it's set, with a review checklist and log. AGENTS.md tells agents to check its *Last reviewed* date at session start and raise it with Mike when it's over about 35 days old.
+- **Workflows moved off Node 20 and `ubuntu-latest`:** checkout v7, setup-python v7, cache v5 and upload-artifact v7 run on Node 24 natively (clears the Node 20 deprecation warning). Both workflows run on `ubuntu-24.04` instead of `ubuntu-latest`, so the label's move to Ubuntu 26.04 (from 19 Oct 2026) can't change the build unannounced. `arduino/setup-arduino-cli@v2` has no Node 24 release yet and still shows the warning in CI.
 - **README install steps:** esptool now finds the watch by itself, and a new "Finding the serial port" section covers Windows, macOS and Linux.
 - **CI hardening:** PlatformIO Core (6.2.0) and arduino-cli (1.5.1) are now pinned like the rest of the toolchain; the workflow token is read-only and the checkout doesn't keep credentials; runs trigger on pushes to `main`, pull requests, or manually, and a newer run cancels an older one on the same branch.
 - **Docs:** the README is now the user guide (summary, features, controls, screens, menu, power saving) and an index of the project docs. Build setup, testing, tunables and project layout moved to the new `docs/DEVELOPMENT.md`, which also gains a releasing checklist.

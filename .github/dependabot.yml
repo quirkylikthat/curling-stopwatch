@@ -1,0 +1,16 @@
+# Dependabot: once a month, open ONE pull request that bumps any GitHub Actions
+# used in .github/workflows/ to their newest release. CI runs on the PR; a green
+# check is the verification. See docs/PINS.md for everything Dependabot does NOT
+# cover (pip pins, runner image, firmware libraries).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "CI"
+    open-pull-requests-limit: 3

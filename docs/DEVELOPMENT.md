@@ -26,6 +26,8 @@ The same folder builds with either tool, and both produce the same firmware from
 4. **Unit tests:** sidebar → **native → Custom → Run unit tests**, or `pio run -e native -t tests`.
    These run on your PC, so they need a host `g++` on `PATH`. On Windows, install one from MSYS2 or WinLibs. On macOS, the Xcode command-line tools provide one.
 
+**Pins are reviewed monthly.** The full list, where each is set, and the review steps are in [PINS.md](PINS.md). A review looks for deprecations, end-of-life and security fixes; it doesn't mean upgrading.
+
 What's pinned: [pioarduino](https://github.com/pioarduino/platform-espressif32) platform **55.03.39**, which is Arduino-ESP32 **3.3.9**, the same core as M5Stack's board package 3.3.9. Also **M5Unified 0.2.25** and **M5GFX 0.2.32**. To upgrade, change the versions in `platformio.ini`, `.github/workflows/ci.yml` and this file together, then re-run the tests and a device check.
 
 PlatformIO creates `.vscode/` and `.pio/` itself. Both are git-ignored.
@@ -75,7 +77,7 @@ scripts/verify.sh --quick     # format + unit tests only
 
 On Windows: `powershell -ExecutionPolicy Bypass -File scripts\verify.ps1` runs the tests (if `g++` is installed) and the PlatformIO build.
 
-**CI:** GitHub Actions runs `scripts/verify.sh` on every push to `main` and every pull request, and can be started by hand from the Actions tab (`.github/workflows/ci.yml`). The workflow has a read-only token and pins its tools: clang-format 23.1.3, PlatformIO Core 6.2.0 and arduino-cli 1.5.1. Change a pin in `ci.yml` and here together.
+**CI:** GitHub Actions runs `scripts/verify.sh` on every push to `main` and every pull request, and can be started by hand from the Actions tab (`.github/workflows/ci.yml`). The workflow has a read-only token and pins its tools: clang-format 23.1.3, PlatformIO Core 6.2.0 and arduino-cli 1.5.1. Change a pin in `ci.yml` and here together. Dependabot (`.github/dependabot.yml`) opens a monthly pull request for newer GitHub Actions versions; see [PINS.md](PINS.md).
 
 The full definition of done (tests, docs, decision log, STATUS, CHANGELOG) is in [AGENTS.md §3](../AGENTS.md).
 
