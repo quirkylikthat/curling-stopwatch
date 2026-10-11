@@ -62,6 +62,7 @@ The owner is **Mike**. He rates his C++ as "some experience". He wants design de
     - M5Unified `0.2.25`
     - M5GFX `0.2.32`
     - clang-format `23.1.3`
+    - PlatformIO Core `6.2.0` and arduino-cli `1.5.1` (CI only)
 
     Change them only on purpose, everywhere at once (`platformio.ini`, `.github/workflows/ci.yml`, `docs/DEVELOPMENT.md`), and with a re-test.
 

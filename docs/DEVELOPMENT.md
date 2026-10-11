@@ -75,7 +75,7 @@ scripts/verify.sh --quick     # format + unit tests only
 
 On Windows: `powershell -ExecutionPolicy Bypass -File scripts\verify.ps1` runs the tests (if `g++` is installed) and the PlatformIO build.
 
-**CI:** GitHub Actions runs `scripts/verify.sh` on every push to `main` (`.github/workflows/ci.yml`). Formatting uses clang-format 23.1.3 (`.clang-format`).
+**CI:** GitHub Actions runs `scripts/verify.sh` on every push to `main` and every pull request, and can be started by hand from the Actions tab (`.github/workflows/ci.yml`). The workflow has a read-only token and pins its tools: clang-format 23.1.3, PlatformIO Core 6.2.0 and arduino-cli 1.5.1. Change a pin in `ci.yml` and here together.
 
 The full definition of done (tests, docs, decision log, STATUS, CHANGELOG) is in [AGENTS.md §3](../AGENTS.md).
 
