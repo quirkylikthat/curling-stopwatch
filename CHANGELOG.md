@@ -5,6 +5,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 ## [Unreleased]
 
 ### Changed
+- **`actions/cache` v5 to v6** (Dependabot PR #3) in `ci.yml` and `release.yml`; `docs/PINS.md` updated. CI and a dry run of the release workflow passed.
 - **`main` is protected:** changes now reach `main` only through pull requests that pass the `verify` check (GitHub ruleset). The releasing steps in `docs/DEVELOPMENT.md` and the rules in `AGENTS.md` are updated: a release is a version-bump PR, then a tag pushed on the merged commit.
 
 ## [0.2.2] - 2026-10-11
