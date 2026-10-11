@@ -89,6 +89,7 @@ A change is done when **all** of these are true:
   - **`docs/STATUS.md`:** add the feature as *not yet verified on device*.
   - **`CHANGELOG.md`:** add an entry under *Unreleased*.
   - **ARCHITECTURE §4 checklist:** add device test steps for anything hardware-dependent.
+- [ ] **Changes reach `main` only through a pull request.** `main` is protected: a PR is required, the `verify` check must pass, and force-pushes and deletion are blocked. Work on a branch, open a PR, and never push to `main`. Releases are tagged on `main` after the version-bump PR merges (`docs/DEVELOPMENT.md`, Releasing).
 - [ ] **Commits are small and focused.** The subject line is imperative, and the body explains *why*. Never commit `.pio/`, `pio-build.log`, or `.vscode/` files other than `extensions.json`.
 
 **Never claim something works on the device unless Mike has confirmed it.** Say "builds and passes unit tests; not yet verified on hardware".

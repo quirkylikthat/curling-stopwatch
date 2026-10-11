@@ -127,10 +127,12 @@ Every tunable lives in `src/Config.h`; logic lives elsewhere. The ones you're mo
 
 ## Releasing
 
-1. Set `kFirmwareVersion` in `src/Config.h` (shown on the boot splash).
-2. In `CHANGELOG.md`, rename *Unreleased* to the version and date, and start a new empty *Unreleased*.
-3. Run `scripts/verify.sh`, commit "Release vX.Y.Z", and create an annotated tag: `git tag -a vX.Y.Z -m "vX.Y.Z"`.
-4. Push both: `git push Github main --follow-tags`.
+`main` is protected: it takes changes only through a pull request whose `verify` check passes, and it can't be force-pushed or deleted. So a release is a version-bump PR followed by a tag on the merged commit.
+
+1. On a branch, set `kFirmwareVersion` in `src/Config.h` (shown on the boot splash).
+2. In `CHANGELOG.md`, rename *Unreleased* to the version and date, and start a new empty *Unreleased*. If the version shows on a screenshot (the splash does), run `make -C tools/screenshots` and commit the images.
+3. Run `scripts/verify.sh`, commit "Release vX.Y.Z", push the branch and open a pull request. Merge it once `verify` is green.
+4. Tag the merged commit and push **only the tag**: `git checkout main && git pull Github main && git tag -a vX.Y.Z -m "vX.Y.Z" && git push Github vX.Y.Z`. (Pushing `main` directly is rejected.)
 5. **The release workflow takes over** (`.github/workflows/release.yml`, triggered by the `v*` tag). It checks that the tag matches `kFirmwareVersion` and that `CHANGELOG.md` has that version's section, waits for CI to pass on the commit, builds the firmware, merges it into one image (`scripts/merge_firmware.py`), and creates a **draft** GitHub Release with the image, the app-only `.bin`, `SHA256SUMS`, `LICENSE` and `NOTICE`. The release notes are the changelog section plus install steps.
 6. Open the draft under *Releases*, read the notes, and click **Publish**.
 
