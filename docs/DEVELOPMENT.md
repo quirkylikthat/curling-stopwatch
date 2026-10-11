@@ -57,7 +57,7 @@ v0.2.0 builds with zero warnings from our code under both toolchains: board pack
 
 ## Unit tests (no device needed)
 
-The timing logic in `src/core/` and the pure app logic in `src/app/` (screen content, settings, menu) are plain C++, with 73 tests that run on a PC. Either command runs the same tests:
+The timing logic in `src/core/` and the pure app logic in `src/app/` (screen content, settings, menu) are plain C++, with 76 tests that run on a PC. Either command runs the same tests:
 
 ```bash
 pio run -e native -t tests    # PlatformIO
@@ -88,7 +88,7 @@ csv,seq,profile,split_s,hog_to_hog_s,complete
 csv,12,SPLIT+H2H,3.86,14.21,1
 ```
 
-Empty fields mean that interval wasn't timed. `complete` is 0 for a run that timed out. Menu taps are also logged as `[menu] tap x,y`, which helps when tuning touch targets.
+Times are truncated to hundredths, exactly as on the screen (`formatResultCsv` in `src/core/Format.h`). Empty fields mean that interval wasn't timed. `complete` is 0 for a run that timed out. Menu taps are also logged as `[menu] tap x,y`, which helps when tuning touch targets.
 
 **While the device sleeps, the serial monitor disconnects.** To stop it sleeping while plugged into USB, set `kSleepOnUsbPower = false` in `src/Config.h`.
 

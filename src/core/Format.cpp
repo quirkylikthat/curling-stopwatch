@@ -23,4 +23,17 @@ char* formatSeconds(Micros duration, int decimals, char* buf, size_t len) {
     return buf;
 }
 
+char* formatResultCsv(const Measurement& m, const char* profileName, char* buf, size_t len) {
+    if (!buf || len == 0) return buf;
+    char split[12] = "";
+    char h2h[12] = "";
+    const int s = m.find(IntervalKind::Split);
+    const int h = m.find(IntervalKind::HogToHog);
+    if (s >= 0) formatSeconds(m.durations[s], 2, split, sizeof(split));
+    if (h >= 0) formatSeconds(m.durations[h], 2, h2h, sizeof(h2h));
+    snprintf(buf, len, "csv,%lu,%s,%s,%s,%d", static_cast<unsigned long>(m.sequence),
+             profileName ? profileName : "", split, h2h, m.complete ? 1 : 0);
+    return buf;
+}
+
 }  // namespace curl

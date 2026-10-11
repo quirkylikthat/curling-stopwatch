@@ -7,6 +7,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 ### Changed
 - **Docs:** the README is now the user guide (summary, features, controls, screens, menu, power saving) and an index of the project docs. Build setup, testing, tunables and project layout moved to the new `docs/DEVELOPMENT.md`, which also gains a releasing checklist.
 
+### Fixed
+- **USB log rounded times while the screen truncates them.** A 3.456 s split showed 3.45 on the watch but logged 3.46. The CSV line now uses the same truncating formatter as the screen (`formatResultCsv` in `core/Format`, unit-tested).
+
 ## [0.2.0] - 2026-10-10
 
 All items below verified on the device (bench test), except the serial CSV output; see `docs/STATUS.md`.

@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 
+#include "../core/Format.h"
 #include "../hal/SleepMemory.h"
 
 namespace curl {
@@ -46,7 +47,7 @@ void App::begin() {
     }
 
     Serial.printf("[app] curling timer %s ready, profile=%s\n", kFirmwareVersion, profile().name);
-    Serial.println("csv,seq,profile,split_s,hog_to_hog_s,complete");
+    Serial.println(kResultCsvHeader);
 
     if (!resumed) delay(800);  // let the splash show; the only blocking delay in the program
     lastActivityMs_ = hw_.nowMillis();
@@ -222,14 +223,8 @@ void App::onMeasurement(const Measurement& m) {
     history_.push(m);
 
     // Machine-readable line for later export / analysis over USB serial.
-    char split[12] = "";
-    char h2h[12] = "";
-    const int s = m.find(IntervalKind::Split);
-    const int h = m.find(IntervalKind::HogToHog);
-    if (s >= 0) snprintf(split, sizeof(split), "%.2f", m.seconds(s));
-    if (h >= 0) snprintf(h2h, sizeof(h2h), "%.2f", m.seconds(h));
-    Serial.printf("csv,%lu,%s,%s,%s,%d\n", static_cast<unsigned long>(m.sequence),
-                  kProfiles[m.profileIndex].shortName, split, h2h, m.complete ? 1 : 0);
+    char line[64];
+    Serial.println(formatResultCsv(m, kProfiles[m.profileIndex].shortName, line, sizeof(line)));
 }
 
 void App::selectProfile(uint8_t index) {

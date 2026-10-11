@@ -87,6 +87,47 @@ TEST(format_small_buffer_is_safe) {
     CHECK_EQ(buf[2], '\0');
 }
 
+TEST(result_csv_truncates_like_the_screen) {
+    Measurement m;
+    m.sequence = 12;
+    m.intervalCount = 2;
+    m.kinds[0] = IntervalKind::Split;
+    m.durations[0] = 3456000;  // printf("%.2f") would round this to 3.46
+    m.kinds[1] = IntervalKind::HogToHog;
+    m.durations[1] = 14219999;
+    m.complete = true;
+    char buf[64];
+    CHECK_STR(formatResultCsv(m, "SPLIT+H2H", buf, sizeof(buf)), "csv,12,SPLIT+H2H,3.45,14.21,1");
+}
+
+TEST(result_csv_leaves_untimed_interval_empty) {
+    Measurement h2h;
+    h2h.sequence = 3;
+    h2h.intervalCount = 1;
+    h2h.kinds[0] = IntervalKind::HogToHog;
+    h2h.durations[0] = 14330000;
+    h2h.complete = true;
+    char buf[64];
+    CHECK_STR(formatResultCsv(h2h, "HOG-HOG", buf, sizeof(buf)), "csv,3,HOG-HOG,,14.33,1");
+
+    // Split timed, then the run timed out before the far hog line.
+    Measurement partial;
+    partial.sequence = 4;
+    partial.intervalCount = 1;
+    partial.kinds[0] = IntervalKind::Split;
+    partial.durations[0] = 3800000;
+    partial.complete = false;
+    CHECK_STR(formatResultCsv(partial, "SPLIT+H2H", buf, sizeof(buf)), "csv,4,SPLIT+H2H,3.80,,0");
+}
+
+TEST(result_csv_small_buffer_is_safe) {
+    Measurement m;
+    m.sequence = 1;
+    char buf[6];
+    formatResultCsv(m, "SPLIT", buf, sizeof(buf));
+    CHECK_EQ(buf[5], '\0');
+}
+
 // ---- RingBuffer / EventFifo ---------------------------------------------------
 
 TEST(ring_buffer_newest_first_and_wraps) {
