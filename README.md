@@ -2,7 +2,7 @@
 
 Firmware for the [M5Stack StopWatch](https://docs.m5stack.com/en/core/StopWatch) (SKU C152) that turns it into a curling split timer.
 
-**v0.1.0 modes** (blue button cycles through them):
+**Timing modes** (a blue click cycles through them):
 
 | Mode | Taps (yellow) | Measures |
 |---|---|---|
@@ -125,7 +125,7 @@ arduino-cli compile --fqbn m5stack:esp32:m5stack_stopwatch .
 arduino-cli upload  --fqbn m5stack:esp32:m5stack_stopwatch -p COM5 .   # your port
 ```
 
-v0.1.0 builds with zero warnings from our code under both toolchains: board package 3.3.9 / pioarduino 55.03.39, M5Unified 0.2.25, M5GFX 0.2.32. It uses about 600–650 KB of flash (~20%) and about 30 KB of static RAM.
+v0.2.0 builds with zero warnings from our code under both toolchains: board package 3.3.9 / pioarduino 55.03.39, M5Unified 0.2.25, M5GFX 0.2.32. It uses about 600–650 KB of flash (~20%) and about 30 KB of static RAM.
 
 ## Unit tests (no device needed)
 

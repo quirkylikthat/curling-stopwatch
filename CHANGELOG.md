@@ -4,6 +4,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-10
+
+All items below verified on the device (bench test), except the serial CSV output; see `docs/STATUS.md`.
+
 ### Added
 - **Menu** (2 s blue hold; touchscreen; D21):
   - **Settings → Brightness:** a live slider.
