@@ -301,6 +301,17 @@ Navigation:
 
 **Revisit if:** we want true-colour captures of the real panel (add a serial screenshot command), or the headless back end disappears from a newer M5GFX (check on each monthly pin review).
 
+### D24 — Boot splash: a curling house with the title curved along the blue ring
+**Choice:** the splash draws the four rings of a house (12-foot blue, 8-foot white, 4-foot red, white button) at the real 6 : 4 : 2 : 0.5 proportions, with the 12-foot ring as the glass edge. "CURLING" curves over the top and "TIMER" under the bottom of the blue ring, both reading left to right with letter tops toward the outside on top and toward the centre underneath. The version is small straight text (FreeSans9pt) centred in the blue strip between "TIMER" and the glass edge; the title radius sits 6 px inside the ring's middle to leave room for it. The rings and text radius are in `ui/Theme.h`; the letter-angle maths is the pure `layout::arcAngles` in `ui/Layout.h` (unit-tested), including checks that the text fits inside the blue ring and the glass.
+
+**Why:**
+- **Curved text:** LovyanGFX has no text-on-a-path. Each letter is drawn upright into a small 56×56 sprite and rotated into place with `pushRotateZoomWithAA`, with the baseline set so the letter's ink (not its line box) is centred on the sprite (the same trap as in AGENTS §6).
+- **Boot-only allocation:** the sprite (~6 KB) is allocated and freed inside the splash, which runs once at boot before the 800 ms hold; no heap is touched after boot (AGENTS invariant 5). If the allocation fails, the splash falls back to flat text.
+- **Big bright areas are fine here:** the splash shows for under a second, so the burn-in and battery rules for the timing screen don't apply.
+- **Rejected:** drawing at 2× and shrinking for smoother edges. It made no visible difference, because the fuzz comes from the 1-bit bitmap font itself, and it cost 4× the memory.
+
+**Revisit if:** the edges look rough on the real glass (a vector or smooth font would fix it), or the splash needs to stay up longer (then think about burn-in).
+
 ## 3. How to extend
 
 | You want to… | Do this |
