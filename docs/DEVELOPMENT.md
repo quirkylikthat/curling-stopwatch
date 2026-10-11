@@ -81,6 +81,20 @@ On Windows: `powershell -ExecutionPolicy Bypass -File scripts\verify.ps1` runs t
 
 The full definition of done (tests, docs, decision log, STATUS, CHANGELOG) is in [AGENTS.md §3](../AGENTS.md).
 
+## Screenshots (no device needed)
+
+Every screen the README describes can be rendered to a PNG on a PC, using the firmware's own `Renderer`:
+
+```bash
+make -C tools/screenshots                 # writes docs/screenshots/*.png and index.md
+make -C tools/screenshots OUT=some/dir    # write elsewhere
+make -C tools/screenshots SQUARE=1        # keep the square frame (default: round, transparent corners)
+```
+
+It needs `g++` and `make` (Linux, WSL, MSYS2, macOS) and the M5GFX sources, which PlatformIO downloads into `.pio/libdeps/` on the first firmware build (or pass `M5GFX_DIR=/path/to/M5GFX`). Objects are built into `build/screenshots/` (git-ignored); the first build compiles M5GFX and takes under a minute (use `make -j`), later runs take seconds. Under WSL, run it from a copy outside `/mnt/c` for speed, as with the unit tests.
+
+To add a screen, add a scene in `tools/screenshots/main.cpp` (drive a `Sim` or a `Menu` into the state, then call `add(...)`). Re-run after any change to `Renderer`, `Theme`, `Layout` or `MenuLayout` so the images don't go stale. The images are the framebuffer, not photos of the AMOLED; see decision D23.
+
 ## Serial monitor
 
 115200 baud. At boot the firmware prints a header, then one line per result:
@@ -137,9 +151,11 @@ stopwatch/
 │   ├── ui/              ViewModel, Renderer, Theme, Layout, MenuLayout (466x466 round AMOLED)
 │   └── app/             App (event routing) + pure ViewBuilder, Menu, UserSettings
 ├── test/                host unit tests (Makefile + test_*.cpp)
+├── tools/screenshots/   PC screenshot generator (real Renderer + M5Unified shim)
 ├── docs/
+│   ├── screenshots/     generated PNGs + index.md (make -C tools/screenshots)
 │   ├── DEVELOPMENT.md   this file
-│   ├── ARCHITECTURE.md  design and the reasons behind each decision (D1–D22)
+│   ├── ARCHITECTURE.md  design and the reasons behind each decision (D1–D23)
 │   ├── HARDWARE.md      pin map, M5Unified API notes, gotchas
 │   └── STATUS.md        what's verified on the device vs. only compiled/tested
 ├── AGENTS.md            rules + definition of done for AI agents and humans
