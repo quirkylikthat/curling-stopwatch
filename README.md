@@ -4,7 +4,7 @@ Firmware that turns the [M5Stack StopWatch](https://docs.m5stack.com/en/core/Sto
 
 Tap the yellow button as the stone crosses each line. The watch shows the **split time** (back line to near hog) with the **weight** it means, the **hog-to-hog time** (the ice speed), or both from a single stone. Every tap buzzes, so you can keep your eyes on the stone. Results are kept in a history you can review between ends, and the weight bands can be tuned on the watch to match the ice.
 
-**Current version: 0.2.0.** Every feature has been bench-tested on the device; see [STATUS](docs/STATUS.md). The default weight bands are placeholders until they're calibrated on real ice.
+**Current version: 0.2.1.** Every feature has been bench-tested on the device except the corrected USB log (new in 0.2.1); see [STATUS](docs/STATUS.md). The default weight bands are placeholders until they're calibrated on real ice.
 
 <table><tr><td align="center"><img src="docs/screenshots/split-result.png" width="200" alt="Split with its weight band"><br><sub>Split with its weight band</sub></td><td align="center"><img src="docs/screenshots/both-result.png" width="200" alt="Split + hog-to-hog"><br><sub>Split + hog-to-hog</sub></td><td align="center"><img src="docs/screenshots/history-full.png" width="200" alt="History"><br><sub>History</sub></td></tr></table>
 

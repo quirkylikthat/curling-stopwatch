@@ -71,7 +71,7 @@ Add a test as a `TEST(name)` in any `test/test_*.cpp` file; it's picked up autom
 ## Checking a change
 
 ```bash
-scripts/verify.sh             # format, unit tests, PlatformIO + Arduino builds (CI runs this)
+scripts/verify.sh             # format, unit tests, PlatformIO + Arduino builds, screenshots up to date (CI runs this)
 scripts/verify.sh --quick     # format + unit tests only
 ```
 
@@ -93,7 +93,7 @@ make -C tools/screenshots SQUARE=1        # keep the square frame (default: roun
 
 It needs `g++` and `make` (Linux, WSL, MSYS2, macOS) and the M5GFX sources, which PlatformIO downloads into `.pio/libdeps/` on the first firmware build (or pass `M5GFX_DIR=/path/to/M5GFX`). Objects are built into `build/screenshots/` (git-ignored); the first build compiles M5GFX and takes under a minute (use `make -j`), later runs take seconds. Under WSL, run it from a copy outside `/mnt/c` for speed, as with the unit tests.
 
-To add a screen, add a scene in `tools/screenshots/main.cpp` (drive a `Sim` or a `Menu` into the state, then call `add(...)`). Re-run after any change to `Renderer`, `Theme`, `Layout` or `MenuLayout` so the images don't go stale. The images are the framebuffer, not photos of the AMOLED; see decision D23.
+To add a screen, add a scene in `tools/screenshots/main.cpp` (drive a `Sim` or a `Menu` into the state, then call `add(...)`). Re-run after any change to `Renderer`, `Theme`, `Layout` or `MenuLayout` and commit the result: step 5 of `scripts/verify.sh` (so CI) regenerates the images and fails if they differ from `docs/screenshots/`, and CI then uploads the new ones as a `screenshots-regenerated` artifact. The step is skipped when `g++`, `make` or the M5GFX sources (from a firmware build) are missing. The images are the framebuffer, not photos of the AMOLED; see decision D23.
 
 ## Serial monitor
 

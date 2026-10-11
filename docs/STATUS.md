@@ -1,6 +1,6 @@
 # Project status
 
-**Last updated:** 2026-10-10.
+**Last updated:** 2026-10-11.
 
 This is the source of truth for **what actually works**. Update it whenever something is confirmed on the device, or found broken. Agents must not mark anything ✅ on device without Mike's confirmation.
 
@@ -39,6 +39,7 @@ This is the source of truth for **what actually works**. Update it whenever some
 | Settings → Split bands (−/+, SHIFT ALL, RESET; saved; used for labels/colours) | ✅ | ✅ | ✅ (saving, scrolling list, space below SHIFT ALL) |
 | Clear history moved to the menu, with confirmation | ✅ | ✅ | ✅ |
 | Export | ⬜ | ⬜ | ⬜ (placeholder page) |
+| Screenshot generator (host tool, `tools/screenshots`; no firmware change) | ⬜ | ⬜ | ⬜ (runs on a PC; kept current by `scripts/verify.sh` step 5 in CI) |
 
 ## Toolchains
 

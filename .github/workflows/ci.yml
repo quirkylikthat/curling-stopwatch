@@ -1,5 +1,5 @@
 # CI: runs scripts/verify.sh (format, unit tests, PlatformIO + Arduino CLI
-# firmware builds) on every push to main and on every pull request. Toolchain
+# firmware builds, up-to-date screenshots) on every push to main and on every pull request. Toolchain
 # versions here must match platformio.ini, AGENTS.md and docs/DEVELOPMENT.md.
 name: ci
 
@@ -60,3 +60,13 @@ jobs:
 
       - name: Verify
         run: bash scripts/verify.sh
+
+      # If docs/screenshots is stale, verify.sh fails and leaves the regenerated
+      # images here: download them from the run, review, and commit.
+      - name: Upload regenerated screenshots
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshots-regenerated
+          path: build/screenshots-out
+          if-no-files-found: ignore
