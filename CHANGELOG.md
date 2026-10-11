@@ -4,6 +4,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 
 ## [Unreleased]
 
+### Added
+- **License:** the project is now under the PolyForm Noncommercial License 1.0.0 (`LICENSE`). Noncommercial use, modification and sharing are allowed; sharing must keep the `Required Notice:` attribution line in `NOTICE`. Commercial use needs a separate license (contact in README).
+
 ### Changed
 - **Docs:** the README is now the user guide (summary, features, controls, screens, menu, power saving) and an index of the project docs. Build setup, testing, tunables and project layout moved to the new `docs/DEVELOPMENT.md`, which also gains a releasing checklist.
 

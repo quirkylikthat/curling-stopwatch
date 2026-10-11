@@ -100,7 +100,14 @@ Connect a serial monitor at 115200 baud and every result is printed as a CSV lin
 | [CHANGELOG.md](CHANGELOG.md) | What changed in each version |
 | [AGENTS.md](AGENTS.md) | Rules for anyone changing the code (people or AI): invariants, definition of done, pitfalls |
 | [CLAUDE.md](CLAUDE.md) | Points Claude at AGENTS.md |
+| [LICENSE](LICENSE), [NOTICE](NOTICE) | PolyForm Noncommercial 1.0.0, and the required attribution line |
 | [src/Config.h](src/Config.h) | Every tunable setting, with comments |
+
+## License
+
+Source-available under the [PolyForm Noncommercial License 1.0.0](LICENSE). You're free to build, use, modify and share it for any noncommercial purpose: personal and hobby use, curling clubs, schools, charities and research. If you share it or a modified version, you must keep the license terms and the `Required Notice:` line in [NOTICE](NOTICE), which credits this project.
+
+Commercial use, such as selling devices or firmware, or using it in a paid product or service, needs a separate license. Contact mikesherry@gmail.com.
 
 ## Hardware
 

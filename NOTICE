@@ -1,0 +1,16 @@
+Curling Timer for the M5Stack StopWatch
+Licensed under the PolyForm Noncommercial License 1.0.0 (see LICENSE).
+
+Required Notice: Copyright 2026 Mike Sherry (https://github.com/quirkylikthat/curling-stopwatch)
+
+Anyone who distributes this software, or any part of it, must pass on the
+LICENSE terms (or the URL in LICENSE) and keep the "Required Notice:" line
+above.
+
+Commercial use needs a separate license: contact mikesherry@gmail.com.
+
+Third-party libraries (not included in this repository; downloaded at build
+time, and under their own licenses):
+  M5Unified, M5GFX (M5Stack) - MIT License
+If you distribute a compiled firmware image, it contains those libraries, so
+include their MIT copyright and permission notices with it.

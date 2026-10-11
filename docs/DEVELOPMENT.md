@@ -137,6 +137,7 @@ stopwatch/
 ├── AGENTS.md            rules + definition of done for AI agents and humans
 ├── CLAUDE.md            imports AGENTS.md (for Claude)
 ├── CHANGELOG.md
+├── LICENSE, NOTICE      PolyForm Noncommercial 1.0.0 + required attribution line
 ├── scripts/             verify.sh/.ps1, pio-diagnose.ps1, pio_tests.py, fontmetrics.py
 ├── .github/workflows/   CI: runs scripts/verify.sh
 │

@@ -88,6 +88,8 @@ A change is done when **all** of these are true:
 
 **Never claim something works on the device unless Mike has confirmed it.** Say "builds and passes unit tests; not yet verified on hardware".
 
+**Licensing:** the project is under the PolyForm Noncommercial License 1.0.0 (`LICENSE`), with the attribution line in `NOTICE`. Don't edit either, and don't add code under an incompatible license. Dependencies are downloaded at build time, not vendored. Copying third-party code into the repo needs Mike's approval and its notice added to `NOTICE`.
+
 ### Decision log template (append to `docs/ARCHITECTURE.md` §2)
 
 ```markdown
