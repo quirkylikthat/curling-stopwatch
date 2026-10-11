@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # pinned; see ci.yml
     timeout-minutes: 90
     permissions:
       contents: write # create the draft release
@@ -32,7 +32,7 @@ jobs:
       GH_REPO: ${{ github.repository }}
       IS_TAG: ${{ github.ref_type == 'tag' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
 
@@ -68,12 +68,12 @@ jobs:
           done
           echo "::error::Timed out waiting for CI"; exit 1
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
       - name: Cache PlatformIO
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ~/.platformio
           key: pio-release-${{ hashFiles('platformio.ini', '.github/workflows/release.yml') }}
@@ -142,7 +142,7 @@ jobs:
 
       - name: Upload files (dry run)
         if: env.IS_TAG != 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-files
           path: |
