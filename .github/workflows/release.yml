@@ -73,7 +73,7 @@ jobs:
           python-version: "3.12"
 
       - name: Cache PlatformIO
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.platformio
           key: pio-release-${{ hashFiles('platformio.ini', '.github/workflows/release.yml') }}
