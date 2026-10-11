@@ -36,8 +36,8 @@ Keep the board package and pioarduino on the same Arduino-ESP32 version.
 | Runner image | `ubuntu-24.04` | `ubuntu-latest` moves to 26.04 from 19 Oct 2026 | `ci.yml`, `release.yml` | [runner-images announcements](https://github.com/actions/runner-images/issues); test `ubuntu-26.04` on purpose |
 | actions/checkout | v7 | v7.0.1 | `ci.yml`, `release.yml` | Dependabot |
 | actions/setup-python | v7 | v7.0.0 | `ci.yml`, `release.yml` | Dependabot |
-| actions/cache | v5 | v5 line (Node 24) | `ci.yml`, `release.yml` | Dependabot |
-| actions/upload-artifact | v7 | v7.0.2 | `release.yml` | Dependabot |
+| actions/cache | v6 | v6 line | `ci.yml`, `release.yml` | Dependabot |
+| actions/upload-artifact | v7 | v7.0.2 | `ci.yml` (stale-screenshot artifact), `release.yml` | Dependabot |
 | arduino/setup-arduino-cli | v2 (still Node 20 upstream) | v2.0.0 | `ci.yml` | Dependabot |
 
 Also read the annotations on the latest CI and release runs. Deprecation notices show up there first.
@@ -61,3 +61,4 @@ When a Dependabot PR arrives: read the release notes for breaking changes, merge
 | Date | By | Outcome |
 |---|---|---|
 | 2026-10-11 | Claude, with Mike | **First full review.** Current: M5Unified 0.2.25, M5GFX 0.2.32, clang-format 23.1.3, PlatformIO 6.2.0, arduino-cli 1.5.1, Python 3.12. CI actions moved to Node 24 versions; runner pinned to `ubuntu-24.04` ahead of the `ubuntu-latest` move on 19 Oct 2026; Dependabot added for actions. `setup-arduino-cli` has no Node 24 release yet. **Open items:** (1) **pioarduino is three patch releases behind** (55.03.39 / Arduino-ESP32 3.3.9 vs 55.03.312-1 / 3.3.12, IDF 5.5.5). Nothing urgent for this firmware (the 3.3.x fixes we saw are in the web server and BLE, which we don't use). **Worth trying:** the newest release's notes describe a fix for a verbose-compile crash that may be our known `pio run -v` failure (unconfirmed). Schedule as one batch with the M5Stack board package, build in CI, and re-test on the device before adopting. (2) The M5Stack Arduino board package's latest version could not be confirmed from here: check it in the Arduino IDE *Boards Manager*. |
+| 2026-10-11 | Dependabot PR #3, merged by Mike | `actions/cache` v5 to v6 in `ci.yml` and `release.yml`. The PR's `verify` check was green and a manual dry run of the `release` workflow was green. Register updated; `upload-artifact` is now also used by `ci.yml`. |
