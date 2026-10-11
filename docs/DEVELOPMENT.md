@@ -138,7 +138,7 @@ Every tunable lives in `src/Config.h`; logic lives elsewhere. The ones you're mo
 
 To test the pipeline without tagging, run **release** from the Actions tab (*Run workflow*). It does everything except create a release, and uploads the files as a workflow artifact. A tag whose version mismatches, or whose commit failed CI, fails before building.
 
-**Flashing a release image:** put the watch in download mode (hold power about 2 s until the green LED lights), then `python -m esptool --chip esp32s3 write_flash 0x0 curling-timer-X.Y.Z-merged.bin` (esptool auto-detects the port; the README explains how to find it if it can't).
+**Flashing a release image:** put the watch in download mode (hold power about 2 s until the green LED lights), then `python -m esptool --chip esp32s3 write-flash 0x0 curling-timer-X.Y.Z-merged.bin` (on Windows use `py -m esptool ...` if `python` isn't found; esptool auto-detects the port, and the README explains how to find it if it can't). The watch doesn't restart by itself afterwards: press the power button. Bench-tested with the v0.2.2 release image on 2026-10-11 (esptool 5.5.0, Windows, `py` launcher).
 
 ## Project layout
 

@@ -5,6 +5,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 ## [Unreleased]
 
 ### Changed
+- **Flashing instructions bench-tested** with the v0.2.2 release image (esptool 5.5.0, Windows) and corrected: `write-flash` replaces the deprecated `write_flash`; a Windows `py -m` fallback and a Python 3.10+ note were added; and the README, release notes and developer guide now say the watch does not restart by itself after flashing (press the power button) and that saved settings reset to the defaults.
 - **`actions/cache` v5 to v6** (Dependabot PR #3) in `ci.yml` and `release.yml`; `docs/PINS.md` updated. CI and a dry run of the release workflow passed.
 - **`main` is protected:** changes now reach `main` only through pull requests that pass the `verify` check (GitHub ruleset). The releasing steps in `docs/DEVELOPMENT.md` and the rules in `AGENTS.md` are updated: a release is a version-bump PR, then a tag pushed on the merged commit.
 
