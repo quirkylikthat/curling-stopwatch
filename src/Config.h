@@ -14,7 +14,7 @@
 namespace curl {
 namespace config {
 
-constexpr const char* kFirmwareVersion = "0.2.0";
+constexpr const char* kFirmwareVersion = "0.2.1";
 
 // --- Colours (RGB565) ------------------------------------------------------
 constexpr uint16_t rgb565(uint8_t r, uint8_t g, uint8_t b) {

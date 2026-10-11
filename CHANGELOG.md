@@ -4,8 +4,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follo
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-11
+
 ### Added
 - **Screenshot tool** (`tools/screenshots`, `make -C tools/screenshots`): renders every screen the README describes to a PNG in `docs/screenshots/` on a PC, round with transparent corners like the glass (31 images: splash, the three modes ready / running / result, all six weight bands, timed-out, battery arc states, history screen full and empty, every menu page). It compiles the firmware's real `Renderer` unchanged and drives the real view/menu logic, so no firmware code changed. See decision D23.
+
+- **Screenshot freshness check:** `scripts/verify.sh` (and so CI) regenerates the screenshots and fails if `docs/screenshots/` differs, so a change to `Renderer`, `Theme`, `Layout` or `MenuLayout` can't leave stale images. On failure CI uploads the regenerated images as a `screenshots-regenerated` artifact. The step is skipped where `g++`, `make` or the M5GFX sources are missing (for example Windows without MSYS2).
 
 - **License:** the project is now under the PolyForm Noncommercial License 1.0.0 (`LICENSE`). Noncommercial use, modification and sharing are allowed; sharing must keep the `Required Notice:` attribution line in `NOTICE`. Commercial use needs a separate license (contact in README).
 
