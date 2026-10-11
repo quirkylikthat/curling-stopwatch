@@ -1,6 +1,8 @@
 #include "Renderer.h"
 
+#include <math.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "Layout.h"
 #include "MenuLayout.h"
@@ -27,20 +29,79 @@ void Renderer::present() {
     if (useCanvas_) canvas_.pushSprite(&M5.Display, 0, 0);
 }
 
+namespace {
+
+constexpr uint16_t kGlyphKey = 0xF81F;  // "transparent" colour of the one-letter sprite
+constexpr int kGlyphCell = 56;          // fits any FreeSansBold24pt capital with room to rotate
+constexpr int kMaxArcChars = 16;
+
+// Draws `text` along a circle around the screen centre. top: reads left to right
+// over the top, letter tops pointing out. !top: reads left to right under the
+// bottom, letter tops pointing in. Each letter is drawn upright into a small
+// sprite and rotated into place (LovyanGFX has no text-on-a-path). Boot only:
+// the sprite (~6 KB) is allocated and freed here.
+void arcText(LovyanGFX& g, const char* text, int radius, bool top, const lgfx::IFont* font,
+             uint16_t color) {
+    const int n = static_cast<int>(strlen(text));
+    if (n <= 0 || n > kMaxArcChars) return;
+
+    M5Canvas glyph(&g);
+    glyph.setColorDepth(16);
+    if (!glyph.createSprite(kGlyphCell, kGlyphCell)) {  // no memory: flat text, still readable
+        g.setFont(font);
+        g.setTextColor(color);
+        g.setTextDatum(middle_center);
+        g.drawString(text, kCenter, top ? kCenter - radius : kCenter + radius);
+        return;
+    }
+    glyph.setFont(font);
+    glyph.setTextColor(color);
+    glyph.setTextDatum(baseline_center);
+
+    int advance[kMaxArcChars];
+    float deg[kMaxArcChars];
+    char one[2] = {0, 0};
+    for (int i = 0; i < n; ++i) {
+        one[0] = text[i];
+        advance[i] = glyph.textWidth(one);
+    }
+    layout::arcAngles(advance, n, radius, kSplashTracking, deg);
+
+    for (int i = 0; i < n; ++i) {
+        one[0] = text[i];
+        glyph.fillSprite(kGlyphKey);
+        // Baseline chosen so the letter's ink (not its line box) is centred on the sprite.
+        glyph.drawString(one, kGlyphCell / 2, kGlyphCell / 2 + kSplashInkCenter);
+        const float rad = deg[i] / layout::kDegreesPerRadian;
+        const float x = kCenter + radius * sinf(rad);
+        const float y = kCenter + (top ? -radius : radius) * cosf(rad);
+        glyph.pushRotateZoomWithAA(&g, x, y, top ? deg[i] : -deg[i], 1.0f, 1.0f, kGlyphKey);
+    }
+    glyph.deleteSprite();
+}
+
+}  // namespace
+
 void Renderer::splash(const char* version) {
     LovyanGFX& g = *target();
     g.startWrite();
     g.fillScreen(kBackground);
-    g.setTextDatum(middle_center);
     g.setTextSize(1);
-    g.setFont(&fonts::FreeSansBold24pt7b);
-    g.setTextColor(kAccent);
-    g.drawString("CURLING", kCenter, kCenter - 40);
+
+    // The house, outside in: 12-foot blue, 8-foot white, 4-foot red, white button.
+    g.fillSmoothCircle(kCenter, kCenter, kHouseR12, kHouseBlue);
+    g.fillSmoothCircle(kCenter, kCenter, kHouseR8, kHouseWhite);
+    g.fillSmoothCircle(kCenter, kCenter, kHouseR4, kHouseRed);
+    g.fillSmoothCircle(kCenter, kCenter, kHouseButtonR, kHouseWhite);
+
+    arcText(g, "CURLING", kSplashTextR, true, &fonts::FreeSansBold24pt7b, kText);
+    arcText(g, "TIMER", kSplashTextR, false, &fonts::FreeSansBold24pt7b, kText);
+
+    g.setFont(&fonts::FreeSans9pt7b);
     g.setTextColor(kText);
-    g.drawString("TIMER", kCenter, kCenter + 10);
-    g.setFont(&fonts::FreeSans12pt7b);
-    g.setTextColor(kTextDim);
-    g.drawString(version, kCenter, kCenter + 70);
+    g.setTextDatum(baseline_center);
+    g.drawString(version, kCenter, kSplashVersionBaseline);
+    g.setTextDatum(middle_center);
     g.endWrite();
     present();
 }

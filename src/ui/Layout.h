@@ -37,5 +37,23 @@ constexpr MidLines midLines(bool showBand, bool showSecondary) {
     return out;
 }
 
+// Curved text: where each character of a string sits on a circle.
+// advance[i] = pixel width of character i, radius = circle radius through the
+// middle of the letters, tracking = extra px between letters. Writes each
+// character's centre angle in degrees, measured from the middle of the string
+// (negative = left of it), so the caller can rotate each letter into place.
+constexpr float kDegreesPerRadian = 57.29578f;
+
+inline void arcAngles(const int* advance, int count, int radius, int tracking, float* outDeg) {
+    int total = 0;
+    for (int i = 0; i < count; ++i) total += advance[i] + (i ? tracking : 0);
+    int run = 0;
+    for (int i = 0; i < count; ++i) {
+        const float middle = static_cast<float>(run) + advance[i] / 2.0f - total / 2.0f;
+        outDeg[i] = middle / static_cast<float>(radius) * kDegreesPerRadian;
+        run += advance[i] + tracking;
+    }
+}
+
 }  // namespace layout
 }  // namespace curl

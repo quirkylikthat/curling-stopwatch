@@ -1,6 +1,6 @@
 # Project status
 
-**Last updated:** 2026-10-10.
+**Last updated:** 2026-10-11.
 
 This is the source of truth for **what actually works**. Update it whenever something is confirmed on the device, or found broken. Agents must not mark anything ✅ on device without Mike's confirmation.
 
@@ -23,7 +23,7 @@ This is the source of truth for **what actually works**. Update it whenever some
 | Haptic feedback patterns | ⬜ | ✅ | ✅ |
 | Battery arc + charging colour | ⬜ | ✅ | ✅ |
 | Mode remembered across power cycles (NVS) | ⬜ | ✅ | ✅ |
-| Serial CSV output (times truncated like the screen) | ✅ (`formatResultCsv`) | ✅ | 🟡 |
+| Serial CSV output (times truncated like the screen) | ✅ (`formatResultCsv`) | ✅ | ✅ (Mike, 2026-10-11: SPLIT ×6, HOG-HOG, SPLIT+H2H and a timed-out run, every time matched the screen, and the history screen's `#n` matched the log `seq`) |
 | Dim after 1 min idle | ✅ (`PowerPolicy`) | ✅ | ✅ |
 | Light sleep after 10 min (instant wake, yellow wake press counts as a tap) | ✅ | ✅ | ✅ (bench-tested 2026-10-10) |
 | Deep sleep after 30 min (wake on either button, history restored) | ✅ (`HistorySnapshot`) | ✅ | ✅ (bench-tested 2026-10-10) |
@@ -39,6 +39,8 @@ This is the source of truth for **what actually works**. Update it whenever some
 | Settings → Split bands (−/+, SHIFT ALL, RESET; saved; used for labels/colours) | ✅ | ✅ | ✅ (saving, scrolling list, space below SHIFT ALL) |
 | Clear history moved to the menu, with confirmation | ✅ | ✅ | ✅ |
 | Export | ⬜ | ⬜ | ⬜ (placeholder page) |
+| Boot splash redesign: curling house, curved title, small version line (D24) | ✅ (`layout::arcAngles`, fit checks) | ✅ PlatformIO (flashed); Arduino via CI | ✅ (Mike, 2026-10-11) |
+| Screenshot generator (host tool, `tools/screenshots`; no firmware change) | ⬜ | ⬜ | ⬜ (runs on a PC; kept current by `scripts/verify.sh` step 5 in CI) |
 
 ## Toolchains
 
@@ -57,6 +59,5 @@ This is the source of truth for **what actually works**. Update it whenever some
 
 ## Next steps
 
-1. **Confirm the serial CSV output** (the last 🟡 above) with a serial monitor.
-2. **Calibrate the split bands** on real ice (Menu → Settings → Split bands).
-3. **Export:** decide where the data goes, then design it.
+1. **Calibrate the split bands** on real ice (Menu → Settings → Split bands).
+2. **Export:** decide where the data goes, then design it.

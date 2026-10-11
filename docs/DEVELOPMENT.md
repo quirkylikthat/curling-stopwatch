@@ -71,7 +71,7 @@ Add a test as a `TEST(name)` in any `test/test_*.cpp` file; it's picked up autom
 ## Checking a change
 
 ```bash
-scripts/verify.sh             # format, unit tests, PlatformIO + Arduino builds (CI runs this)
+scripts/verify.sh             # format, unit tests, PlatformIO + Arduino builds, screenshots up to date (CI runs this)
 scripts/verify.sh --quick     # format + unit tests only
 ```
 
@@ -93,7 +93,7 @@ make -C tools/screenshots SQUARE=1        # keep the square frame (default: roun
 
 It needs `g++` and `make` (Linux, WSL, MSYS2, macOS) and the M5GFX sources, which PlatformIO downloads into `.pio/libdeps/` on the first firmware build (or pass `M5GFX_DIR=/path/to/M5GFX`). Objects are built into `build/screenshots/` (git-ignored); the first build compiles M5GFX and takes under a minute (use `make -j`), later runs take seconds. Under WSL, run it from a copy outside `/mnt/c` for speed, as with the unit tests.
 
-To add a screen, add a scene in `tools/screenshots/main.cpp` (drive a `Sim` or a `Menu` into the state, then call `add(...)`). Re-run after any change to `Renderer`, `Theme`, `Layout` or `MenuLayout` so the images don't go stale. The images are the framebuffer, not photos of the AMOLED; see decision D23.
+To add a screen, add a scene in `tools/screenshots/main.cpp` (drive a `Sim` or a `Menu` into the state, then call `add(...)`). Re-run after any change to `Renderer`, `Theme`, `Layout` or `MenuLayout` and commit the result: step 5 of `scripts/verify.sh` (so CI) regenerates the images and fails if they differ from `docs/screenshots/`, and CI then uploads the new ones as a `screenshots-regenerated` artifact. The step is skipped when `g++`, `make` or the M5GFX sources (from a firmware build) are missing. The images are the framebuffer, not photos of the AMOLED; see decision D23.
 
 ## Serial monitor
 
@@ -127,10 +127,12 @@ Every tunable lives in `src/Config.h`; logic lives elsewhere. The ones you're mo
 
 ## Releasing
 
-1. Set `kFirmwareVersion` in `src/Config.h` (shown on the boot splash).
-2. In `CHANGELOG.md`, rename *Unreleased* to the version and date, and start a new empty *Unreleased*.
-3. Run `scripts/verify.sh`, commit "Release vX.Y.Z", and create an annotated tag: `git tag -a vX.Y.Z -m "vX.Y.Z"`.
-4. Push both: `git push Github main --follow-tags`.
+`main` is protected: it takes changes only through a pull request whose `verify` check passes, and it can't be force-pushed or deleted. So a release is a version-bump PR followed by a tag on the merged commit.
+
+1. On a branch, set `kFirmwareVersion` in `src/Config.h` (shown on the boot splash).
+2. In `CHANGELOG.md`, rename *Unreleased* to the version and date, and start a new empty *Unreleased*. If the version shows on a screenshot (the splash does), run `make -C tools/screenshots` and commit the images.
+3. Run `scripts/verify.sh`, commit "Release vX.Y.Z", push the branch and open a pull request. Merge it once `verify` is green.
+4. Tag the merged commit and push **only the tag**: `git checkout main && git pull Github main && git tag -a vX.Y.Z -m "vX.Y.Z" && git push Github vX.Y.Z`. (Pushing `main` directly is rejected.)
 5. **The release workflow takes over** (`.github/workflows/release.yml`, triggered by the `v*` tag). It checks that the tag matches `kFirmwareVersion` and that `CHANGELOG.md` has that version's section, waits for CI to pass on the commit, builds the firmware, merges it into one image (`scripts/merge_firmware.py`), and creates a **draft** GitHub Release with the image, the app-only `.bin`, `SHA256SUMS`, `LICENSE` and `NOTICE`. The release notes are the changelog section plus install steps.
 6. Open the draft under *Releases*, read the notes, and click **Publish**.
 
